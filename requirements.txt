@@ -33,3 +33,4 @@ openpyxl
 python-pptx
 python-docx
 python-dotenv
+python-multipart
