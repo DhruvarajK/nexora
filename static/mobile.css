@@ -195,7 +195,7 @@
         width: 100%;
         line-height: 1.6;
         padding: 2px;
-        margin-bottom: 2rem;
+        margin-bottom: 3rem;
     }
 
     /* Input area - fixed at bottom */
@@ -831,27 +831,7 @@
       margin-top: 10px;
     }
 
-    /* base bubble */
-.bubble {
-    margin-bottom: 1rem;
-    padding: 0.75rem 1rem;
-    border-radius: 1.25rem;
-    line-height: 1.5;
-    position: relative; /* needed for absolute buttons */
-    word-wrap: break-word;
-    font-size: 14px;
-}
 
-/* user bubble styling (existing) */
-.bubble-user {
-  background: #ffffff;
-  color: #000000;
-  align-self: flex-end;
-  border-bottom-right-radius: 0.25rem;
-  max-width: 75%;
-  width: auto;
-  border: 1px solid #bababa61;
-}
 
 /* shared message-buttons styling */
 .message-buttons {
