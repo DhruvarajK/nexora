@@ -896,12 +896,6 @@
 }
 
 
-    
-    .bubble-bot .message-buttons {
-        position: absolute;
-        display: inline-flex;
-        align-items: center;
-    }
 
 
     .bubble-user .message-buttons{

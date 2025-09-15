@@ -284,6 +284,7 @@ color: white;
   gap: 13px;
   margin-top: 8px;
   justify-content: flex-end;
+  color: #5c5c5c;
 }
 
 .message-buttons button:hover {
@@ -299,16 +300,7 @@ color: white;
 .bubble-bot .message-buttons {
   display: inline-block;
   position: absolute;
-  bottom: -25px;
-}
-
-svg.abnosvg:hover{
-  color: #000;
-  cursor: pointer;
-}
-
-svg.abnosvg:active{
-  color: #000;
+  bottom: -30px;
 }
 
 
