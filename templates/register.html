@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Register</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f7f7f7; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+    .card { background:white; padding:24px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06); width:400px; }
+    .error { color:#b00020; margin-bottom:12px; }
+    input { width:100%; padding:10px 12px; margin:8px 0; border:1px solid #ddd; border-radius:6px; }
+    button { width:100%; padding:10px; border:none; border-radius:6px; background:#0f766e; color:white; font-weight:600; cursor:pointer; }
+    a { color:#2563eb; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Create account</h2>
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/register">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" value="{{ form.username if form.username }}" />
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" value="{{ form.email if form.email }}" required />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required />
+      <label for="date_of_birth">Date of birth (YYYY-MM-DD)</label>
+      <input id="date_of_birth" name="date_of_birth" type="date" value="{{ form.date_of_birth if form.date_of_birth }}" />
+      <button type="submit">Register</button>
+    </form>
+    <p style="margin-top:12px">Already have an account? <a href="/login">Login</a></p>
+  </div>
+</body>
+</html>

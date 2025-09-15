@@ -1,0 +1,40 @@
+<html>
+    <head>
+        <script src="/tailwind.js"></script>
+        <style>
+            .action-buttons{
+                color: rgb(97, 97, 97);
+            }
+        </style>
+    </head>
+    <body>
+        
+
+
+<div class="flex min-h-[46px] justify-start">  
+    <div class="action-buttons h-8 mt-0.5 flex flex-row flex-wrap w-full justify-between last-response print:hidden">
+        <div class="flex items-center w-max rounded-lg text-xs start-0 md:start-3 -ml-4 -mt-2 opacity-100 p-0 gap-0" style="bottom: 120px;">
+                <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Regenerate" data-state="closed"><span style="opacity: 1; transform: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="stroke-[2] size-4"><path d="M4 20V15H4.31241M4.31241 15H9M4.31241 15C5.51251 18.073 8.50203 20.25 12 20.25C15.8582 20.25 19.0978 17.6016 20 14.0236M20 4V9H19.6876M19.6876 9H15M19.6876 9C18.4875 5.92698 15.498 3.75 12 3.75C8.14184 3.75 4.90224 6.3984 4 9.9764" stroke="currentColor"></path></svg></span>
+                </button>
+                <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60 relative" type="button" aria-label="Start thread" data-state="closed"><span style="opacity: 1; transform: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>
+                </button>
+                <button class="copy-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Copy" data-state="closed"><span style="opacity: 1; transform: none;">
+                        ${CopyIcon}</span>
+                </button>
+                <button class="like-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Like" id="radix-«r1oc»" aria-haspopup="menu" aria-expanded="false" data-state="closed"><span style="opacity: 1; transform: none;">
+                    ${Like}</span>
+                </button>
+                <button class="dislike-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Dislike" id="radix-«r1oi»" aria-haspopup="menu" aria-expanded="false" data-state="closed"><span style="opacity: 1; transform: none;">
+                    ${Dislike}</span>
+                </button>
+                <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="More actions" id="radix-«r1oo»" aria-haspopup="menu" aria-expanded="false" data-state="closed"><span style="opacity: 1; transform: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis size-4"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></span>
+                </button>
+            <div class="px-1.5 text-secondary hover:bg-button-ghost-hover rounded-md cursor-default opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" data-state="closed">1.6s</div>
+    </div>
+</div>
+</div>
+    </body>
+</html>

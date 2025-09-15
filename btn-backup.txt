@@ -1,0 +1,28 @@
+<div class="tooltip">
+                            <button class="like-btn">${Like}</button>
+                            <span class="tooltip-text">Like</span>
+                        </div>
+                        <div class="tooltip">
+                            <button class="dislike-btn">${Dislike}</button>
+                            <span class="tooltip-text">Dislike</span>
+                        </div>
+                        <div class="tooltip">
+                            <button class="copy-btn">${CopyIcon}</button>
+                            <span class="tooltip-text">Copy Response</span>
+                        </div>
+                        <div class="tooltip">
+                            <button class="export-pdf-btn">${ExpIco}</button>
+                            <span class="tooltip-text">Export to PDF</span>
+                        </div>
+
+
+                        <div class="tooltip">
+                            
+                            <span class="tooltip-text">Dislike</span>
+                        </div>
+
+
+<button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="More actions" id="radix-«r1oo»" aria-haspopup="menu" aria-expanded="false" data-state="closed"><span style="opacity: 1; transform: none;">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis size-4"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></span>
+</button>
+                    <div class="px-1.5 text-secondary hover:bg-button-ghost-hover rounded-md cursor-default opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" data-state="closed">1.6s</div>

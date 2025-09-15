@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nex - Login / Register</title>
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" onload="this.rel='stylesheet'" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <script src="static/tailwind.js"></script>
+
+  <!-- Tailwind-style utilities (kept as you had them) -->
+  <style type="text/tailwindcss">
+    body {
+      font-family: "Space Grotesk", "Noto Sans", sans-serif;
+    }
+    .form-input {
+      @apply w-full pl-10 rounded-md border border-gray-700 bg-black px-4 py-3 text-white placeholder-gray-500 focus:border-white focus:ring-white;
+    }
+    .form-label {
+      @apply mb-2 text-sm font-medium text-gray-400 ml-4;
+    }
+  </style>
+
+  <!-- Responsive background + layout tweaks -->
+  <style>
+    .bg-hero {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+    }
+    .bg-hero {
+      background-image: url("/static/cat-nex-ds.jpg");
+    }
+    @media (min-width: 768px) {
+      .bg-hero {
+        background-image: url("/static/cat-nex-mb.jpg");
+      }
+    }
+    .overlay {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    .login-card { transition: transform 220ms cubic-bezier(.2,.8,.2,1), opacity 220ms; }
+    /* view switch animation helpers */
+    .view-enter { transform: translateY(6px); opacity: 0; }
+    .view-enter-active { transform: translateY(0); opacity: 1; transition: transform 220ms ease, opacity 220ms ease; }
+    .view-exit { transform: translateY(0); opacity: 1; }
+    .view-exit-active { transform: translateY(-6px); opacity: 0; transition: transform 180ms ease, opacity 180ms ease; }
+
+    /* Small helper if tailwind 'hidden' isn't present in runtime build */
+    .hidden { display: none !important; }
+  </style>
+</head>
+
+<body class="bg-black text-white">
+  <div class="relative flex min-h-screen w-full flex-col md:p-4 bg-hero justify-center" id="page-root">
+    <div class="absolute inset-0 bg-black/70 overlay"></div>
+
+    <!-- Card container -->
+    <div id="auth-card" class="relative z-10 w-full max-w-md rounded-2xl bg-zinc-900/30 p-8 shadow-2xl login-card
+                mx-auto h-[auto] md:h-[100vh] md:mx-0 md:ml-0 md:mr-auto">
+
+      <!-- Logo + header area -->
+      <div id="header" class="text-center md:text-left">
+        <svg class="ml-[44%] md:ml-0" width="35" height="35" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 7L10 0H8L2 7V9H7L6 16H8L14 9L14 7H9Z" fill="currentColor"/></svg>
+      </div>
+
+      <!-- Container for both views -->
+      <div class="mt-6 space-y-2">
+        <!-- Login View -->
+        <section id="login-view" class="space-y-6" aria-hidden="false">
+          <div>
+            <h2 class="text-3xl font-bold tracking-tight">Log in to Nex</h2>
+            <p class="mt-2 text-sm text-gray-400">Welcome back! Please enter your details.</p>
+          </div>
+
+          <!-- Login form -->
+          <form id="login-form" class="space-y-6" method="post" action="/login">
+
+            <div>
+              <label for="email" class="form-label">Username or Email</label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">person</span>
+                <input id="email" name="email" type="email" autocomplete="email" required class="form-input pl-10" placeholder="you@example.com"/>
+              </div>
+            </div>
+
+            <div>
+              <label for="password" class="form-label">Password</label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">lock</span>
+                <input id="password" name="password" type="password" autocomplete="current-password" required class="form-input pl-10" placeholder="••••••••"/>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+              <div class="flex items-center">
+                <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 rounded border-gray-600 bg-black text-white focus:ring-white"/>
+                <label for="remember-me" class="ml-2 text-gray-400">Remember me</label>
+              </div>
+              <a href="#" class="font-medium text-gray-300 hover:text-white transition">Forgot password?</a>
+            </div>
+
+            <div>
+              <button type="submit" class="flex w-full justify-center rounded-3xl bg-white py-3 px-4 text-sm font-semibold text-black shadow-sm transition-transform duration-200 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white active:scale-95">
+                Log In
+              </button>
+            </div>
+          </form>
+
+          <p class="mt-6 text-center md:text-left text-sm text-gray-400">
+            Don't have an account?
+            <a href="#" id="show-register" class="font-medium text-white hover:underline">Sign up</a>
+          </p>
+        </section>
+
+        <!-- Register View (hidden initially) -->
+        <section id="register-view" class="space-y-6 hidden" aria-hidden="true">
+          <div>
+            <h2 class="text-3xl font-bold tracking-tight">Create account</h2>
+            <p class="mt-2 text-sm text-gray-400">Create a new account to get started.</p>
+          </div>
+
+          <!-- Register form -->
+          <form id="register-form" class="space-y-6" method="post" action="/register">
+            <div>
+              <label for="reg-username" class="form-label">Username</label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">badge</span>
+                <input id="reg-username" name="username" type="text" class="form-input pl-10" placeholder="your handle"/>
+              </div>
+            </div>
+
+            <div>
+              <label for="reg-email" class="form-label">Email</label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">email</span>
+                <input id="reg-email" name="email" type="email" autocomplete="email" required class="form-input pl-10" placeholder="you@example.com"/>
+              </div>
+            </div>
+
+            <div>
+              <label for="reg-password" class="form-label">Password</label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">lock</span>
+                <input id="reg-password" name="password" type="password" autocomplete="new-password" required class="form-input pl-10" placeholder="Create a password"/>
+              </div>
+            </div>
+
+            <div>
+              <label for="reg-dob" class="form-label">Date of birth (YYYY-MM-DD)</label>
+              <input id="reg-dob" name="date_of_birth" type="date" class="form-input" />
+            </div>
+
+            <div>
+              <button type="submit" class="flex w-full justify-center rounded-3xl bg-white py-3 px-4 text-sm font-semibold text-black shadow-sm transition-transform duration-200 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white active:scale-95">
+                Register
+              </button>
+            </div>
+          </form>
+
+          <p class="mt-6 text-center md:text-left text-sm text-gray-400">
+            Already have an account?
+            <a href="#" id="show-login" class="font-medium text-white hover:underline">Log in</a>
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Small script to toggle views in-place -->
+  <script>
+    (function () {
+      const root = document.querySelector('.bg-hero') || document.getElementById('page-root');
+      function applyAlignment() {
+        if (!root) return;
+        if (window.innerWidth >= 768) {
+          root.classList.add('items-start', 'pl-12','md:h-[100vh]');
+          root.classList.remove('items-center', 'px-4');
+          if (window.innerWidth >= 1024) {
+            root.classList.add('md:h-[100vh]');
+          } else {
+            root.classList.remove('md:h-[100vh]');
+          }
+        } else {
+          root.classList.remove('items-start', 'pl-12', 'lg:pl-24','md:h-[100vh]');
+          root.classList.add('items-center', 'px-4');
+        }
+      }
+      applyAlignment();
+      window.addEventListener('resize', applyAlignment);
+
+      // Views
+      const loginView = document.getElementById('login-view');
+      const registerView = document.getElementById('register-view');
+      const showRegister = document.getElementById('show-register');
+      const showLogin = document.getElementById('show-login');
+
+      function show(view) {
+        if (view === 'register') {
+          // animate out login
+          loginView.classList.add('view-exit-active');
+          loginView.setAttribute('aria-hidden', 'true');
+          setTimeout(()=> {
+            loginView.classList.add('hidden');
+            loginView.classList.remove('view-exit-active');
+            // show register
+            registerView.classList.remove('hidden');
+            registerView.classList.add('view-enter-active');
+            registerView.setAttribute('aria-hidden', 'false');
+            setTimeout(()=> registerView.classList.remove('view-enter-active'), 300);
+          }, 160);
+        } else {
+          registerView.classList.add('view-exit-active');
+          registerView.setAttribute('aria-hidden', 'true');
+          setTimeout(()=> {
+            registerView.classList.add('hidden');
+            registerView.classList.remove('view-exit-active');
+            loginView.classList.remove('hidden');
+            loginView.classList.add('view-enter-active');
+            loginView.setAttribute('aria-hidden', 'false');
+            setTimeout(()=> loginView.classList.remove('view-enter-active'), 300);
+          }, 160);
+        }
+      }
+
+      showRegister.addEventListener('click', function (e) {
+        e.preventDefault();
+        show('register');
+        // optional: update url hash without refreshing
+        history.replaceState(null, '', '#register');
+      });
+
+      showLogin.addEventListener('click', function (e) {
+        e.preventDefault();
+        show('login');
+        history.replaceState(null, '', '#login');
+      });
+
+      // Respect direct links: if URL has #register show register on load
+      if (location.hash === '#register') show('register');
+      if (location.hash === '#login') show('login');
+    })();
+  </script>
+</body>
+</html>
