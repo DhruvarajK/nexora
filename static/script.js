@@ -260,7 +260,7 @@ text = text.replace(/\|\s*#\d+\s*\|\s*\(\s*(https?:\/\/[^)]+?)\s*\)/g, (match, u
 
 
 const regex = /^:::\(src\)([\s\S]*?):::\(src\)\n*/gm;
-text= text.replace(regex, '<div class="src-con" id="srcCon" >$1<span class="src-con-txt">Sources</span></div><br>');
+text= text.replace(regex, '<div class="src-con" id="srcCon" >$1<span class="src-con-txt">Sources</span></div>\n\n');
 
 text = text.replace(/\[\[!\]\]\((https?:\/\/[^)]+)\)/g, (match, url) => {
   try {
@@ -313,14 +313,333 @@ text = text.replace(/\[\[!\]\]\((https?:\/\/[^)]+)\)/g, (match, url) => {
 
 
   // Blockquotes, HR, Links, Lists
-  text = text.replace(/^>\s+(.*)$/gm, '<blockquote>$1</blockquote>')
-             .replace(/^---$/gm, '<hr>')
-             .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-             .replace(/^\*\s+(.*)$/gm, '<li>$1</li>')
-             .replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>')
-             .replace(/^\d+\.\s+(.*)$/gm, '<li>$1</li>')
-             .replace(/(<ol>.*?<\/ol>)/gs, '<ol>$1</ol>');
-  
+  text = text
+    .replace(/^>\s+(.*)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/^---$/gm, '<hr>')
+    // enhanced link handler (drop this into your existing .replace chain in place of the old link replace)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+      const trimmedUrl = url.trim();
+      const safeText = escapeHtml(linkText);
+      const safeUrl = escapeHtml(trimmedUrl);
+
+      // Determine file type
+      const imgRegex = /\.(png|jpe?g|gif|svg|webp)(\?.*)?(#.*)?$/i;
+      const fileRegex = /\.(pdf|docx?|xlsx?|pptx?|txt|csv)(\?.*)?(#.*)?$/i;
+      const mImg = imgRegex.test(trimmedUrl);
+      const mFile = fileRegex.test(trimmedUrl);
+
+      if (mImg) {
+        // image: preserve existing wrapper + spinner behavior
+        return `
+          <div class="custom-image-wrapper" role="img" aria-label="${safeText}">
+            <div class="custom-image-spinner" aria-hidden="true"></div>
+            <img
+              class="custom-image-class"
+              src="${safeUrl}"
+              alt="${safeText}"
+              loading="lazy"
+              onload="this.classList.add('loaded'); const s=this.previousElementSibling; if(s) s.style.display='none';"
+              onerror="this.classList.add('error'); const s=this.previousElementSibling; if(s) s.style.display='none';"
+            />
+          </div>
+        `;
+      }
+
+      if (mFile) {
+        // get extension (without query/hash)
+        const extMatch = trimmedUrl.match(/\.(pdf|docx?|xlsx?|pptx?|txt|csv)/i);
+        const ext = extMatch ? extMatch[1].toLowerCase() : 'file';
+
+        // mapping to color class + label
+        const typeMap = {
+          pdf: { cls: 'file-pdf', label: 'PDF', color: '#d6453b' },
+          doc: { cls: 'file-doc', label: 'DOC', color: '#2b7de9' },
+          docx: { cls: 'file-doc', label: 'DOCX', color: '#2b7de9' },
+          xls: { cls: 'file-xls', label: 'XLS', color: '#1e9a4a' },
+          xlsx: { cls: 'file-xls', label: 'XLSX', color: '#1e9a4a' },
+          ppt: { cls: 'file-ppt', label: 'PPT', color: '#e67e22' },
+          pptx: { cls: 'file-ppt', label: 'PPTX', color: '#e67e22' },
+          txt: { cls: 'file-txt', label: 'TXT', color: '#6c757d' },
+          csv: { cls: 'file-txt', label: 'CSV', color: '#6c757d' }
+        };
+        const info = typeMap[ext] || { cls: 'file-generic', label: ext.toUpperCase() };
+
+        // nice, compact file card — accessible and clickable
+        return `
+          <a class="file-card ${info.cls}" href="${safeUrl}" target="_blank" rel="noopener noreferrer" aria-label="${safeText} (${info.label})">
+            <span class="file-card-icon" aria-hidden="true">
+              <!-- simple SVG file icon with extension text slot -->
+              <svg viewBox="0 0 48 48" width="32" height="32" role="img" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                <path class="file-shape" d="M10 4h20l8 8v28a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="currentColor"/>
+              </svg>
+            </span>
+            <span class="file-card-info">
+              <span class="file-card-name">${safeText}</span>
+              <span class="file-card-meta">${info.label.toUpperCase()}</span>
+            </span>
+            
+          </a>
+        `;
+      }
+
+      // fallback: regular link
+      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeText}</a>`;
+    })
+
+    .replace(/^\*\s+(.*)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/^\d+\.\s+(.*)$/gm, '<li>$1</li>')
+    .replace(/(<ol>.*?<\/ol>)/gs, '<ol>$1</ol>');
+
+    (function () {
+      // --- Utilities ---
+      function basenameFromUrl(url) {
+        try {
+          const u = new URL(url, location.href);
+          return u.pathname.split('/').pop() || u.hostname;
+        } catch (e) {
+          return url;
+        }
+      }
+      function isImageUrl(url) {
+        return /\.(png|jpe?g|gif|svg|webp)(\?.*)?(#.*)?$/i.test(url);
+      }
+    
+      // --- Build lightbox DOM (once) ---
+      const lightboxHtml = `
+        <div id="custom-lightbox" class="custom-lightbox" hidden aria-hidden="true" role="dialog" aria-modal="true">
+          <div class="clb-overlay" data-action="close" tabindex="-1"></div>
+          <div class="clb-panel" role="document">
+            <button class="clb-close" data-action="close" aria-label="Close (Esc)">✕</button>
+            <div class="clb-stage">
+              <button class="clb-nav clb-prev" data-action="prev" aria-label="Previous image">‹</button>
+              <div class="clb-mediawrap">
+                <div class="clb-spinner" aria-hidden="true"></div>
+                <img class="clb-image" alt="">
+              </div>
+              <button class="clb-nav clb-next" data-action="next" aria-label="Next image">›</button>
+            </div>
+            <div class="clb-info">
+              <div class="clb-caption" aria-live="polite"></div>
+              <div class="clb-actions">
+                <a class="clb-download" role="button" href="#" download aria-label="Download image">Download</a>
+                <a class="clb-open" target="_blank" rel="noopener noreferrer" aria-label="Open in new tab">Open</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(lightboxHtml, 'text/html');
+      const lightboxNode = doc.body.firstElementChild;
+      document.body.appendChild(lightboxNode);
+    
+      // --- Elements ---
+      const LB = document.getElementById('custom-lightbox');
+      const overlay = LB.querySelector('.clb-overlay');
+      const panel = LB.querySelector('.clb-panel');
+      const imgEl = LB.querySelector('.clb-image');
+      const spinner = LB.querySelector('.clb-spinner');
+      const captionEl = LB.querySelector('.clb-caption');
+      const downloadBtn = LB.querySelector('.clb-download');
+      const openBtn = LB.querySelector('.clb-open');
+      const prevBtn = LB.querySelector('.clb-prev');
+      const nextBtn = LB.querySelector('.clb-next');
+      const closeBtns = LB.querySelectorAll('[data-action="close"]');
+    
+      // --- State ---
+      let images = []; // array of {src, alt, filename}
+      let currentIndex = 0;
+      let lastActive = null;
+    
+      // --- Helpers ---
+      function collectImages() {
+        // collect only visible custom images (in DOM order)
+        images = Array.from(document.querySelectorAll('.custom-image-class'))
+          .filter(el => el.src && isImageUrl(el.src))
+          .map(el => ({ src: el.src, alt: el.alt || '', el }));
+      }
+    
+      function showLightbox(index) {
+        if (!images.length) return;
+        currentIndex = (index + images.length) % images.length;
+        const item = images[currentIndex];
+        lastActive = document.activeElement;
+      
+        // Show UI
+        LB.hidden = false;
+        LB.setAttribute('aria-hidden', 'false');
+        document.documentElement.style.overflow = 'hidden'; // prevent page scroll while open
+        
+        // Reset image state
+        imgEl.classList.remove('loaded', 'error');
+        imgEl.alt = item.alt || '';
+        captionEl.textContent = item.alt || basenameFromUrl(item.src);
+      
+        // update open/link targets
+        openBtn.href = item.src;
+        downloadBtn.href = item.src;
+        downloadBtn.dataset.src = item.src; // used by fetch fallback
+        downloadBtn.download = basenameFromUrl(item.src);
+      
+        // Check if image is already loaded (cached)
+        if (imgEl.src === item.src && imgEl.complete && imgEl.naturalWidth > 0) {
+          // Image is already loaded
+          showSpinner(false);
+          imgEl.classList.add('loaded');
+        } else {
+          // Show spinner and load new image
+          showSpinner(true);
+          imgEl.src = item.src;
+        }
+      
+        // focus management
+        setTimeout(() => {
+          closeBtns[0].focus();
+        }, 50);
+      
+        updateNavVisibility();
+      }
+    
+      function hideLightbox() {
+        LB.hidden = true;
+        LB.setAttribute('aria-hidden', 'true');
+        document.documentElement.style.overflow = '';
+        imgEl.src = '';
+        if (lastActive && lastActive.focus) lastActive.focus();
+      }
+    
+      function updateNavVisibility() {
+        prevBtn.style.display = images.length > 1 ? '' : 'none';
+        nextBtn.style.display = images.length > 1 ? '' : 'none';
+      }
+    
+      function showSpinner(show) {
+        spinner.style.display = show ? 'block' : 'none';
+      }
+    
+      // --- Image load/error handlers ---
+      imgEl.addEventListener('load', () => {
+        showSpinner(false);
+        imgEl.classList.add('loaded');
+      });
+      imgEl.addEventListener('error', () => {
+        showSpinner(false);
+        imgEl.classList.add('error');
+        captionEl.textContent = 'Failed to load image';
+      });
+    
+      // --- Navigation ---
+      function goNext() {
+        showLightbox((currentIndex + 1) % images.length);
+      }
+      function goPrev() {
+        showLightbox((currentIndex - 1 + images.length) % images.length);
+      }
+    
+      // --- Download logic ---
+      async function attemptDownload(url, filename, el) {
+        // el: the <a> element for visual feedback
+        // Try to fetch blob (best UX). If fails due to CORS, fallback to opening URL in new tab.
+        try {
+          el.classList.add('downloading');
+          const res = await fetch(url, { mode: 'cors' }); // might throw if blocked
+          if (!res.ok) throw new Error('Network error');
+          const blob = await res.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = filename || basenameFromUrl(url);
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          // revoke after short delay
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+        } catch (err) {
+          // fallback: open in new tab (user can manually save)
+          window.open(url, '_blank', 'noopener');
+        } finally {
+          el.classList.remove('downloading');
+        }
+      }
+    
+      // --- Event delegation for clicks on images ---
+      document.addEventListener('click', function (e) {
+        const imgClicked = e.target.closest && e.target.closest('.custom-image-class');
+        if (imgClicked) {
+          collectImages(); // refresh list (in case images were added dynamically)
+          const idx = images.findIndex(i => i.el === imgClicked);
+          if (idx >= 0) {
+            showLightbox(idx);
+            e.preventDefault();
+          } else {
+            // if not found, still try to open the clicked src alone
+            images = [{ src: imgClicked.src, alt: imgClicked.alt || '', el: imgClicked }];
+            showLightbox(0);
+            e.preventDefault();
+          }
+          return;
+        }
+    
+        // close when clicking overlay or close button
+        const closeTarget = e.target.closest && e.target.closest('[data-action="close"]');
+        if (closeTarget) {
+          hideLightbox();
+          return;
+        }
+    
+        const navTarget = e.target.closest && e.target.closest('[data-action="next"], [data-action="prev"]');
+        if (navTarget) {
+          if (navTarget.dataset.action === 'next') goNext();
+          else if (navTarget.dataset.action === 'prev') goPrev();
+          return;
+        }
+    
+        // download click
+        if (e.target.closest && e.target.closest('.clb-download')) {
+          e.preventDefault();
+          const btn = e.target.closest('.clb-download');
+          const url = btn.dataset.src || btn.href;
+          const filename = btn.download || basenameFromUrl(url);
+          attemptDownload(url, filename, btn);
+        }
+      }, false);
+    
+      // --- Keyboard support ---
+      document.addEventListener('keydown', function (e) {
+        if (LB.hidden || LB.getAttribute('aria-hidden') === 'true') return;
+        if (e.key === 'Escape') {
+          hideLightbox();
+        } else if (e.key === 'ArrowRight') {
+          goNext();
+        } else if (e.key === 'ArrowLeft') {
+          goPrev();
+        }
+      });
+    
+      // close if click outside the panel content
+      LB.addEventListener('click', (e) => {
+        if (e.target === overlay) hideLightbox();
+      });
+    
+      // ensure lists are collected on initial run if images exist
+      collectImages();
+    
+      // expose small API in case you want to open programmatically:
+      window.CustomImageLightbox = {
+        open: (src) => {
+          collectImages();
+          const idx = images.findIndex(i => i.src === src);
+          if (idx >= 0) showLightbox(idx);
+          else {
+            images = [{ src, alt: '', el: null }];
+            showLightbox(0);
+          }
+        },
+        refresh: collectImages
+      };
+    })();
+    
   
 
   text = '<p>' + text.replace(/\n\n+/g, '</p><p>') + '</p>';
@@ -341,7 +660,7 @@ text = text.replace(/\[\[!\]\]\((https?:\/\/[^)]+)\)/g, (match, url) => {
         <div>
           <span class="thinking-label">
             <svg class="think-logo" width="21" height="21" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.656 17.344c-1.016-1.015-1.15-2.75-.313-4.925.325-.825.73-1.617 1.205-2.365L3.582 10l-.033-.054c-.5-.799-.91-1.596-1.206-2.365-.836-2.175-.703-3.91.313-4.926.56-.56 1.364-.86 2.335-.86 1.425 0 3.168.636 4.957 1.756l.053.034.053-.034c1.79-1.12 3.532-1.757 4.957-1.757.972 0 1.776.3 2.335.86 1.014 1.015 1.148 2.752.312 4.926a13.892 13.892 0 0 1-1.206 2.365l-.034.054.034.053c.5.8.91 1.596 1.205 2.365.837 2.175.704 3.911-.311 4.926-.56.56-1.364.861-2.335.861-1.425 0-3.168-.637-4.957-1.757L10 16.415l-.053.033c-1.79 1.12-3.532 1.757-4.957 1.757-.972 0-1.776-.3-2.335-.86zm13.631-4.399c-.187-.488-.429-.988-.71-1.492l-.075-.132-.092.12a22.075 22.075 0 0 1-3.968 3.968l-.12.093.132.074c1.308.734 2.559 1.162 3.556 1.162.563 0 1.006-.138 1.298-.43.3-.3.436-.774.428-1.346-.008-.575-.159-1.264-.449-2.017zm-6.345 1.65l.058.042.058-.042a19.881 19.881 0 0 0 4.551-4.537l.043-.058-.043-.058a20.123 20.123 0 0 0-2.093-2.458 19.732 19.732 0 0 0-2.458-2.08L10 5.364l-.058.042A19.883 19.883 0 0 0 5.39 9.942L5.348 10l.042.059c.631.874 1.332 1.695 2.094 2.457a19.74 19.74 0 0 0 2.458 2.08zm6.366-10.902c-.293-.293-.736-.431-1.298-.431-.998 0-2.248.429-3.556 1.163l-.132.074.12.092a21.938 21.938 0 0 1 3.968 3.968l.092.12.074-.132c.282-.504.524-1.004.711-1.492.29-.753.442-1.442.45-2.017.007-.572-.129-1.045-.429-1.345zM3.712 7.055c.202.514.44 1.013.712 1.493l.074.13.092-.119a21.94 21.94 0 0 1 3.968-3.968l.12-.092-.132-.074C7.238 3.69 5.987 3.262 4.99 3.262c-.563 0-1.006.138-1.298.43-.3.301-.436.774-.428 1.346.007.575.159 1.264.448 2.017zm0 5.89c-.29.753-.44 1.442-.448 2.017-.008.572.127 1.045.428 1.345.293.293.736.431 1.298.431.997 0 2.247-.428 3.556-1.162l.131-.074-.12-.093a21.94 21.94 0 0 1-3.967-3.968l-.093-.12-.074.132a11.712 11.712 0 0 0-.71 1.492z" fill="currentColor" stroke="currentColor" stroke-width=".1"></path><path d="M10.706 11.704A1.843 1.843 0 0 1 8.155 10a1.845 1.845 0 1 1 2.551 1.704z" fill="currentColor" stroke="currentColor" stroke-width=".2"></path></svg>${label}
+              <path d="M2.656 17.344c-1.016-1.015-1.15-2.75-.313-4.925.325-.825.73-1.617 1.205-2.365L3.582 10l-.033-.054c-.5-.799-.91-1.596-1.206-2.365-.836-2.175-.703-3.91.313-4.926.56-.56 1.364-.86 2.335-.86 1.425 0 3.168.636 4.957 1.756l.053.034.053-.034c1.79-1.12 3.532-1.757 4.957-1.757.972 0 1.776.3 2.335.86 1.014 1.015 1.148 2.752.312 4.926a13.892 13.892 0 0 1-1.206 2.365l-.034.054.034.053c.5.8.91 1.596 1.205 2.365.837 2.175.704 3.911-.311 4.926-.56.56-1.364.861-2.335.861-1.425 0-3.168-.637-4.957-1.757L10 16.415l-.053.033c-1.79 1.12-3.532 1.757-4.957 1.757-.972 0-1.776-.3-2.335-.86zm13.631-4.399c-.187-.488-.429-.988-.71-1.492l-.075-.132-.092.12a22.075 22.075 0 0 1-3.968 3.968l-.12.093.132.074c1.308.734 2.559 1.162 3.556 1.162.563 0 1.006-.138 1.298-.43.3-.3.436-.774.428-1.346-.008-.575-.159-1.264-.449-2.017zm-6.345 1.65l.058.042.058-.042a19.881 19.881 0 0 0 4.551-4.537l.043-.058-.043-.058a20.123 20.123 0 0 0-2.093-2.458 19.732 19.732 0 0 0-2.458-2.08L10 5.364l-.058.042A19.883 19.883 0 0 0 5.39 9.942L5.348 10l.042.059c.631.874 1.332 1.695 2.094 2.457a19.74 19.74 0 0 0 2.458 2.08zm6.366-10.902c-.293-.293-.736-.431-1.298-.431-.998 0-2.248.429-3.556 1.163l-.132.074.12.092a21.938 21.938 0 0 1 3.968 3.968l.092.12.074-.132c.282-.504.524-1.004.711-1.492.29-.753.442-1.442.45-2.017.007-.572-.129-1.045-.429-1.345zM3.712 7.055c.202.514.44 1.013.712 1.493l.074.13.092-.119a21.94 21.94 0 0 1 3.968-3.968l.12-.092-.132-.074C7.238 3.69 5.987 3.262 4.99 3.262c-.563 0-1.006.138-1.298.43-.3.301-.436.774-.428 1.346.007.575.159 1.264.448 2.017zm0 5.89c-.29.753-.44 1.442-.448 2.017-.008.572.127 1.045.428 1.345.293.293.736.431 1.298.431.997 0 2.247-.428 3.556-1.162l.131-.074-.12-.093a21.94 21.94 0 0 1-3.967-3.968l-.093-.12-.074.132a11.712 11.712 0 0 0-.71 1.492z" fill="currentColor" stroke="currentColor" stroke-width=".01"></path><path d="M10.706 11.704A1.843 1.843 0 0 1 8.155 10a1.845 1.845 0 1 1 2.551 1.704z" fill="currentColor" stroke="currentColor" stroke-width=".01"></path></svg>${label}
           </span>
         </div>
         <div>
@@ -586,4 +905,20 @@ document.addEventListener('click', async e => {
     }
   }
 });
+
+
+document.addEventListener('load', function(e){
+  if(e.target.matches('.custom-image-class')){
+    e.target.classList.add('loaded');
+    const s = e.target.previousElementSibling;
+    if(s) s.style.display='none';
+  }
+}, true);
+document.addEventListener('error', function(e){
+  if(e.target.matches('.custom-image-class')){
+    e.target.classList.add('error');
+    const s = e.target.previousElementSibling;
+    if(s) s.style.display='none';
+  }
+}, true);
 

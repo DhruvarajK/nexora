@@ -80,10 +80,12 @@ CREATE TABLE IF NOT EXISTS chats (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
+    is_private INTEGER NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id)
 )
 """)
+
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS history (
@@ -300,21 +302,37 @@ def strip_first_think_block(text: str) -> str:
     cleaned_text = re.sub(r"<think>[\s\S]*?</think>", "", text, count=1)
     return re.sub(r"###CODE_EXEC[\s\S]*?###CODE_EXEC", "", cleaned_text)
 
+from datetime import datetime, timezone
+
 @app.get("/chats")
-async def get_user_chats(request:Request):
+async def get_user_chats(request: Request):
     user_id = get_current_user_id(request)
     cursor.execute(
-        "SELECT id, title, created_at FROM chats WHERE user_id = ? ORDER BY created_at DESC",
+        "SELECT id, title, created_at FROM chats WHERE user_id = ? AND is_private = 0 ORDER BY created_at DESC",
         (user_id,)
     )
-    chats = cursor.fetchall()
-    return [{"id": r["id"], "title": r["title"]} for r in chats]
+    rows = cursor.fetchall()
+    chats = []
+    for r in rows:
+        created = r["created_at"]
+        # Normalize to an ISO string so JS can parse it reliably
+        if isinstance(created, datetime):
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc).isoformat()
+            else:
+                created = created.isoformat()
+        else:
+            created = str(created)  
+        chats.append({"id": r["id"], "title": r["title"], "created_at": created})
+    return chats
+
 
 from nameSuggester import suggest_chat_name
 
 
 class ChatCreateRequest(BaseModel):
     message: str
+    is_private: Optional[int] = 0  # 0 = False, 1 = True
 
 @app.post("/chats")
 async def create_chat(request: ChatCreateRequest, user_id: int = Depends(get_current_user_id)):
@@ -323,15 +341,16 @@ async def create_chat(request: ChatCreateRequest, user_id: int = Depends(get_cur
 
     # Use the first 50 characters of the message as the title
     title = (request.message[:50] + '...') if len(request.message) > 50 else request.message
-
     title = suggest_chat_name(title)
+
+    # Insert into DB including is_private
     cursor.execute(
-        "INSERT INTO chats (user_id, title) VALUES (?, ?)",
-        (user_id, title)
+        "INSERT INTO chats (user_id, title, is_private) VALUES (?, ?, ?)",
+        (user_id, title, request.is_private)
     )
     conn.commit()
     new_chat_id = cursor.lastrowid
-    return {"id": new_chat_id, "title": title}
+    return {"id": new_chat_id, "title": title, "is_private": request.is_private}
 
 @app.get("/chats/{chat_id}/history")
 async def get_chat_history(chat_id: int):
@@ -451,15 +470,15 @@ async def chat_stream_exec(req: ChatRequest):
         history = get_last_history(chat_id, 15)
         memories = get_all_memories() # Per-chat memories
         mn_prompt = (
-    f"You are Nexora, a large language model developed by Dhruvaraj. "
-    f"Your role is to act as a message passer, providing clear, concise, and formally worded responses. "
-    f"Deliver the following output to the user: '{ops_gen}' "
-    f"for the given user prompt: '{user_msg}'. "
-    f"Whenever a link is included, present it as a clickable Markdown link in the format: "
-    f"[Descriptive Text](URL) "
-    f"Responses must be free of any code, programming syntax, or code-like formatting, including inline backticks. "
-    f"Responses may use multiple lines and paragraphs when appropriate for clarity."
-)
+        f"You are Nexora, a large language model developed by Dhruvaraj. "
+        f"Your role is to act as a message passer, providing clear, concise, and formally worded responses. "
+        f"Deliver the following output to the user: '{ops_gen}' "
+        f"for the given user prompt: '{user_msg}'. "
+        f"Whenever a link is included, present it as a clickable Markdown link in the format: "
+        f"[Descriptive Text](URL) "
+        f"Responses must be free of any code, programming syntax, or code-like formatting, including inline backticks. "
+        f"Responses may use multiple lines and paragraphs when appropriate for clarity."
+    )
 
 
         messages = [

@@ -91,9 +91,6 @@
             padding: 10px 13px 7px 11px;
             border-radius: 12px;
         }
-          .history-section:hover{
-            background-color: #3838381c;
-          }
 
           .history-section:active{
             background-color: transparent;
@@ -173,6 +170,7 @@
             line-height: 2;
             display: flex;
             flex-direction: column;
+            margin-bottom: 40px;
         }
 
         .expand-button {
@@ -184,8 +182,8 @@
           height: 38px;
           border: none;
           border-radius: 30px;
-          background-color: #e7e7e7;
-          color: #5b5b5b;
+          background-color: #e7e7e796;
+          color: #000000de;
           cursor: pointer;
           transition: width 0.3s ease, background-color 0.3s ease;
           white-space: nowrap;
@@ -233,6 +231,7 @@
               white-space: pre-wrap;
               width: 99%;
               font-size: 13px;
+              background: inherit;
           }
           .input-box {
             width: 700px;
@@ -400,14 +399,15 @@
 
 
 
-  .thinking-block {
-    border-radius: 18px;
-    margin: 16px 0px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    border: 2px solid #c9c9c959;
-    padding: 11px;
-}
+    .thinking-block {
+      border-radius: 13px;
+      margin: 16px 0px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      border: none;
+      padding: 0;
+      white-space: normal; 
+  }
 
 
   .thinking-block.streaming {
@@ -421,10 +421,9 @@
     user-select: none;
     transition: background-color 0.2s ease;
     display: flex;
-    gap: 4px;
-    justify-content: space-between;
+    gap: 6px;
+    justify-content: flex-start;
 }
-
   
   .thinking-icon {
     font-size: 16px;
@@ -433,18 +432,20 @@
   
   .thinking-label {
     font-weight: 300;
-    color: #475569;
+    color: #242629;
     font-size: 14px;
     margin-right: auto;
     display: flex;
     align-items: center;
     gap: 5px;
+    font-family: system-ui;
+    font-weight: 400;
 }
   .thinking-toggle {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 7px 7px;
+    padding: 0;
     border-radius: 4px;
     transition: background-color 0.2s ease;
     color: #64748b;
@@ -467,6 +468,8 @@
     line-height: 1.6;
     font-size: 14px;
     background-color: #fff;
+    position: relative;
+    padding-left: 2rem;
 }
 
 .thinking-content.is-open {
@@ -476,13 +479,57 @@
   transform: translateY(0); 
 }
 
-.thinking-content p {
-  margin-bottom: 6px;
-  border-left: 1px solid #ffffff;
-  padding-left: 8px;
-  font-family: system-ui;
-  color: #575757;
+
+
+
+/* Vertical line connecting all dots */
+.thinking-content::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  bottom: 0;
+  width: 1px;
+  background-color: #444;
 }
+
+/* Each paragraph gets a dot */
+.thinking-content p {
+  position: relative;
+  margin-bottom: 1.5rem;
+  padding-left: 0;
+  font-size: 13px;
+  color: #161616;
+  text-align: justify;
+}
+
+.thinking-content p::before {
+  content: '';
+  position: absolute;
+  left: -34px;
+  top: 0px;
+  width: 22px;
+  height: 22px;
+  background-color: #666;
+  border-radius: 50%;
+  z-index: 1;
+  transition: all 0.2s 
+ease;
+  border: 8px solid white;
+}
+
+/* Hover effects */
+.thinking-content p:hover::before {
+  background-color: #000000be;
+  transform: scale(1.2);
+}
+
+.thinking-content p:hover {
+  color: #000000be;
+  transition: color 0.2s ease;
+}
+
+
   .thinking-content p:last-child {
     margin-bottom: 0;
   }
@@ -780,6 +827,7 @@ body:not(.light) #cancelDelete:hover {
     display: flex;
     flex-direction: column;
     font-size: 14px;
+    overflow-x: hidden;
 }
 
 .new-chat-btn {
@@ -802,7 +850,7 @@ svg.nav-icon {
   stroke-width: 2;
   width: 20px;
   height: 20px;
-  color: #424242;
+  color: inherit;
 }
 
 
@@ -820,12 +868,11 @@ svg.nav-icon {
   opacity: 0; /* Starts invisible */
   transition: max-height 0.5s ease-out, opacity 0.5s ease-out; /* Smooth transition for both properties */
   margin-left: 22px;
-  padding-bottom: 70px;
 }
 
 /* When the #history is NOT collapsed, apply the expanded styles */
 #history:not(.collapsed) #chat-list {
-  max-height: 500px; /* Or a sufficiently large value that covers its full expanded height */
+  max-height: 365px; /* Or a sufficiently large value that covers its full expanded height */
   opacity: 1;
 }
 #code-files-list {
@@ -1032,22 +1079,20 @@ transform: translateY(0);
 }
 }
 
-/* Scroll-to-bottom button styles */
 #scroll-to-bottom-btn {
-position: fixed;
-bottom: 7.2rem;
-z-index: 10;
-/* padding: 10px; */
-background-color: #ffffff;
-color: #2d2d2d;
-border: none;
-border-radius: 50%;
-cursor: pointer;
-width: 34px;
-height: 34px;
-border: 1px solid #b0b0b0;
-align-items: center;
-justify-content: center;
+  position: absolute;
+  bottom: 7.2rem;
+  z-index: 10;
+  right: 0;
+  background-color: #ffffff;
+  color: #2d2d2d;
+  border-radius: 50%;
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #b0b0b0;
+  align-items: center;
+  justify-content: center;
 }
 
 body.light #scroll-to-bottom-btn {
@@ -1072,7 +1117,7 @@ img.logo {
   position: relative;
   align-items: center;
   border: 1px solid #dfdfdf;
-  padding: 7px;
+  padding: 4px;
   background-color: #ffffff;
   border-radius: 30px;
   cursor: pointer;
@@ -1149,7 +1194,11 @@ img.logo {
 }
 
 .source-link-r + .source-link-r {
-  margin-left: -9px; /* Adjust to control overlap, this creates the visual overlap */
+  margin-left: -14px; /* Adjust to control overlap, this creates the visual overlap */
+}
+
+.src-con a {
+  padding: 0px;
 }
 
 /* Optional: Better z-index management for hover */
@@ -1446,23 +1495,6 @@ img.logo {
 }
 
 
-.private-ch {
-  position: fixed;
-  right: 15px;
-  top: 15px;
-  display: flex;
-  color: #919191;
-  align-items: center;
-  gap: 6px;
-  border-radius: 26px;
-  border: 1px solid #e7e7e7;
-  padding: 7px;
-  cursor: pointer;
-  font-size: 13px;
-}
-.private-ch:hover{
-  background: #e6e6e6d0;
-}
 
 .margin-view-overlays {
   margin-left: -12px;
@@ -1549,11 +1581,11 @@ display: none;
   background: transparent;
   overflow: hidden;
   border: 1px solid #d0d0d0;
+  white-space: normal; 
 }
 
 .exec-code-header {
-  display: flex
-;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px;
@@ -1563,6 +1595,7 @@ display: none;
   font-weight: 500;
   border-radius: inherit;
   cursor: pointer;
+
 }
 
 span.exec-code-label svg {
@@ -1672,3 +1705,50 @@ span.exec-code-label svg {
     background: linear-gradient(45deg, #fff, #ccc);
 }
 
+.chat-delta{
+  width: 100%;
+}
+
+
+body:has(#inco-btn.expanded) .input-box {
+  background-color: #939cff3b;
+  border: 1px solid #939cff;
+  transition: background-color .5s cubic-bezier(0.46, 0.03, 0.52, 0.96)
+
+}
+
+
+
+
+
+body:has(#inco-btn.expanded) #rec-container{
+  transform: translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+
+body:has(#inco-btn.expanded) .nex-head{
+  color: #939cff5b;
+  transition: background-color 1s cubic-bezier(0.46, 0.03, 0.52, 0.96)
+}
+
+body:has(#inco-btn.expanded) .inner-inco-info {
+  max-height: 200px; /* adjust depending on content */
+  opacity: 1;
+  padding-bottom: 4px;
+
+}
+
+.inner-inco-info {
+  font-size: 11px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  display: flex;              /* keep flex, don’t toggle */
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 0;
+  color: #979797;
+  transition: all 0.3s ease;  /* smooth expand/collapse */
+}

@@ -41,9 +41,8 @@
                 <div id="suggestions-container" style="display:none;"></div>
             </div>
             <div id="input-area">
-                <button id="scroll-to-bottom-btn" style="display: none;" class="scroll-to-bottom"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5.70711 9.71069C5.31658 10.1012 5.31658 10.7344 5.70711 11.1249L10.5993 16.0123C11.3805 16.7927 12.6463 16.7924 13.4271 16.0117L18.3174 11.1213C18.708 10.7308 18.708 10.0976 18.3174 9.70708C17.9269 9.31655 17.2937 9.31655 16.9032 9.70708L12.7176 13.8927C12.3271 14.2833 11.6939 14.2832 11.3034 13.8927L7.12132 9.71069C6.7308 9.32016 6.09763 9.32016 5.70711 9.71069Z" fill="currentColor"/></svg>
-                </button>
+                <div class="inco-info"><div class="inner-inco-info"><span></span><span>This conversation is temporary and won’t be saved to your history.</span></div> </div>
+                
                 <div class="search-dropdown" id="search-dropdown">
                     <div class="search-header">
                         <svg width="20px" height="20px" viewBox="-0.5 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -77,6 +76,10 @@
                     </div>
                 </div>
                 <div class="input-box">
+                    <button id="scroll-to-bottom-btn" style="display: none;" class="scroll-to-bottom"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.70711 9.71069C5.31658 10.1012 5.31658 10.7344 5.70711 11.1249L10.5993 16.0123C11.3805 16.7927 12.6463 16.7924 13.4271 16.0117L18.3174 11.1213C18.708 10.7308 18.708 10.0976 18.3174 9.70708C17.9269 9.31655 17.2937 9.31655 16.9032 9.70708L12.7176 13.8927C12.3271 14.2833 11.6939 14.2832 11.3034 13.8927L7.12132 9.71069C6.7308 9.32016 6.09763 9.32016 5.70711 9.71069Z" fill="currentColor"/></svg>
+                    </button>
+                   
                     <div id="upload-preview-container" style="display: none;"></div>
                     <div><textarea id="input-msg" rows="1" placeholder="Type your message..."></textarea></div>
                     <div class="controls-main">
@@ -88,9 +91,11 @@
                                     </svg>
                                 
                             </button>
-                            <button id="reason-btn" class="expand-button" onclick="this.classList.toggle('expanded')"><svg width="20px" height="20px" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.656 17.344c-1.016-1.015-1.15-2.75-.313-4.925.325-.825.73-1.617 1.205-2.365L3.582 10l-.033-.054c-.5-.799-.91-1.596-1.206-2.365-.836-2.175-.703-3.91.313-4.926.56-.56 1.364-.86 2.335-.86 1.425 0 3.168.636 4.957 1.756l.053.034.053-.034c1.79-1.12 3.532-1.757 4.957-1.757.972 0 1.776.3 2.335.86 1.014 1.015 1.148 2.752.312 4.926a13.892 13.892 0 0 1-1.206 2.365l-.034.054.034.053c.5.8.91 1.596 1.205 2.365.837 2.175.704 3.911-.311 4.926-.56.56-1.364.861-2.335.861-1.425 0-3.168-.637-4.957-1.757L10 16.415l-.053.033c-1.79 1.12-3.532 1.757-4.957 1.757-.972 0-1.776-.3-2.335-.86zm13.631-4.399c-.187-.488-.429-.988-.71-1.492l-.075-.132-.092.12a22.075 22.075 0 0 1-3.968 3.968l-.12.093.132.074c1.308.734 2.559 1.162 3.556 1.162.563 0 1.006-.138 1.298-.43.3-.3.436-.774.428-1.346-.008-.575-.159-1.264-.449-2.017zm-6.345 1.65l.058.042.058-.042a19.881 19.881 0 0 0 4.551-4.537l.043-.058-.043-.058a20.123 20.123 0 0 0-2.093-2.458 19.732 19.732 0 0 0-2.458-2.08L10 5.364l-.058.042A19.883 19.883 0 0 0 5.39 9.942L5.348 10l.042.059c.631.874 1.332 1.695 2.094 2.457a19.74 19.74 0 0 0 2.458 2.08zm6.366-10.902c-.293-.293-.736-.431-1.298-.431-.998 0-2.248.429-3.556 1.163l-.132.074.12.092a21.938 21.938 0 0 1 3.968 3.968l.092.12.074-.132c.282-.504.524-1.004.711-1.492.29-.753.442-1.442.45-2.017.007-.572-.129-1.045-.429-1.345zM3.712 7.055c.202.514.44 1.013.712 1.493l.074.13.092-.119a21.94 21.94 0 0 1 3.968-3.968l.12-.092-.132-.074C7.238 3.69 5.987 3.262 4.99 3.262c-.563 0-1.006.138-1.298.43-.3.301-.436.774-.428 1.346.007.575.159 1.264.448 2.017zm0 5.89c-.29.753-.44 1.442-.448 2.017-.008.572.127 1.045.428 1.345.293.293.736.431 1.298.431.997 0 2.247-.428 3.556-1.162l.131-.074-.12-.093a21.94 21.94 0 0 1-3.967-3.968l-.093-.12-.074.132a11.712 11.712 0 0 0-.71 1.492z" fill="currentColor" stroke="currentColor" stroke-width=".1"></path><path d="M10.706 11.704A1.843 1.843 0 0 1 8.155 10a1.845 1.845 0 1 1 2.551 1.704z" fill="currentColor" stroke="currentColor" stroke-width=".2"></path></svg><span class="label">Deepthink</span></button>
+                            <button id="reason-btn" class="expand-button" ><svg width="20px" height="20px" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.656 17.344c-1.016-1.015-1.15-2.75-.313-4.925.325-.825.73-1.617 1.205-2.365L3.582 10l-.033-.054c-.5-.799-.91-1.596-1.206-2.365-.836-2.175-.703-3.91.313-4.926.56-.56 1.364-.86 2.335-.86 1.425 0 3.168.636 4.957 1.756l.053.034.053-.034c1.79-1.12 3.532-1.757 4.957-1.757.972 0 1.776.3 2.335.86 1.014 1.015 1.148 2.752.312 4.926a13.892 13.892 0 0 1-1.206 2.365l-.034.054.034.053c.5.8.91 1.596 1.205 2.365.837 2.175.704 3.911-.311 4.926-.56.56-1.364.861-2.335.861-1.425 0-3.168-.637-4.957-1.757L10 16.415l-.053.033c-1.79 1.12-3.532 1.757-4.957 1.757-.972 0-1.776-.3-2.335-.86zm13.631-4.399c-.187-.488-.429-.988-.71-1.492l-.075-.132-.092.12a22.075 22.075 0 0 1-3.968 3.968l-.12.093.132.074c1.308.734 2.559 1.162 3.556 1.162.563 0 1.006-.138 1.298-.43.3-.3.436-.774.428-1.346-.008-.575-.159-1.264-.449-2.017zm-6.345 1.65l.058.042.058-.042a19.881 19.881 0 0 0 4.551-4.537l.043-.058-.043-.058a20.123 20.123 0 0 0-2.093-2.458 19.732 19.732 0 0 0-2.458-2.08L10 5.364l-.058.042A19.883 19.883 0 0 0 5.39 9.942L5.348 10l.042.059c.631.874 1.332 1.695 2.094 2.457a19.74 19.74 0 0 0 2.458 2.08zm6.366-10.902c-.293-.293-.736-.431-1.298-.431-.998 0-2.248.429-3.556 1.163l-.132.074.12.092a21.938 21.938 0 0 1 3.968 3.968l.092.12.074-.132c.282-.504.524-1.004.711-1.492.29-.753.442-1.442.45-2.017.007-.572-.129-1.045-.429-1.345zM3.712 7.055c.202.514.44 1.013.712 1.493l.074.13.092-.119a21.94 21.94 0 0 1 3.968-3.968l.12-.092-.132-.074C7.238 3.69 5.987 3.262 4.99 3.262c-.563 0-1.006.138-1.298.43-.3.301-.436.774-.428 1.346.007.575.159 1.264.448 2.017zm0 5.89c-.29.753-.44 1.442-.448 2.017-.008.572.127 1.045.428 1.345.293.293.736.431 1.298.431.997 0 2.247-.428 3.556-1.162l.131-.074-.12-.093a21.94 21.94 0 0 1-3.967-3.968l-.093-.12-.074.132a11.712 11.712 0 0 0-.71 1.492z" fill="currentColor" stroke="currentColor" stroke-width=".1"></path><path d="M10.706 11.704A1.843 1.843 0 0 1 8.155 10a1.845 1.845 0 1 1 2.551 1.704z" fill="currentColor" stroke="currentColor" stroke-width=".2"></path></svg><span class="label">Deepthink</span></button>
                             <button id="search-btn" class="expand-button"><svg width="20px" height="20px" viewBox="-0.5 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 11.8201C22 9.84228 21.4135 7.90885 20.3147 6.26436C19.2159 4.61987 17.6542 3.33813 15.8269 2.58126C13.9996 1.82438 11.9889 1.62637 10.0491 2.01223C8.10927 2.39808 6.32748 3.35052 4.92896 4.74904C3.53043 6.14757 2.578 7.92935 2.19214 9.86916C1.80629 11.809 2.00436 13.8197 2.76123 15.6469C3.51811 17.4742 4.79985 19.036 6.44434 20.1348C8.08883 21.2336 10.0222 21.8201 12 21.8201" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11.8201H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 21.8201C10.07 21.8201 8.5 17.3401 8.5 11.8201C8.5 6.30007 10.07 1.82007 12 1.82007C13.93 1.82007 15.5 6.30007 15.5 11.8201" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.3691 21.6901C20.3021 21.6901 21.8691 20.1231 21.8691 18.1901C21.8691 16.2571 20.3021 14.6901 18.3691 14.6901C16.4361 14.6901 14.8691 16.2571 14.8691 18.1901C14.8691 20.1231 16.4361 21.6901 18.3691 21.6901Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22.9998 22.8202L20.8398 20.6702" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="label">Search</span></button>
-                            <button id="sys-access" class="expand-button" onclick="this.classList.toggle('expanded')"><svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 16C10.6193 16 9.5 17.1193 9.5 18.5C9.5 19.8807 10.6193 21 12 21C13.3807 21 14.5 19.8807 14.5 18.5C14.5 17.1193 13.3807 16 12 16ZM12 16V12M5.5 8C6.88071 8 8 6.88071 8 5.5C8 4.11929 6.88071 3 5.5 3C4.11929 3 3 4.11929 3 5.5C3 6.88071 4.11929 8 5.5 8ZM5.5 8V8.8C5.5 9.92011 5.5 10.4802 5.71799 10.908C5.90973 11.2843 6.21569 11.5903 6.59202 11.782C7.01984 12 7.57989 12 8.7 12H15.3C16.4201 12 16.9802 12 17.408 11.782C17.7843 11.5903 18.0903 11.2843 18.282 10.908C18.5 10.4802 18.5 9.92011 18.5 8.8V8M18.5 8C19.8807 8 21 6.88071 21 5.5C21 4.11929 19.8807 3 18.5 3C17.1193 3 16 4.11929 16 5.5C16 6.88071 17.1193 8 18.5 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg><span class="label">System</span></button>
+                            <button id="sys-access" class="expand-button" ><svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 16C10.6193 16 9.5 17.1193 9.5 18.5C9.5 19.8807 10.6193 21 12 21C13.3807 21 14.5 19.8807 14.5 18.5C14.5 17.1193 13.3807 16 12 16ZM12 16V12M5.5 8C6.88071 8 8 6.88071 8 5.5C8 4.11929 6.88071 3 5.5 3C4.11929 3 3 4.11929 3 5.5C3 6.88071 4.11929 8 5.5 8ZM5.5 8V8.8C5.5 9.92011 5.5 10.4802 5.71799 10.908C5.90973 11.2843 6.21569 11.5903 6.59202 11.782C7.01984 12 7.57989 12 8.7 12H15.3C16.4201 12 16.9802 12 17.408 11.782C17.7843 11.5903 18.0903 11.2843 18.282 10.908C18.5 10.4802 18.5 9.92011 18.5 8.8V8M18.5 8C19.8807 8 21 6.88071 21 5.5C21 4.11929 19.8807 3 18.5 3C17.1193 3 16 4.11929 16 5.5C16 6.88071 17.1193 8 18.5 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg><span class="label">System</span></button>
+                            <button id="img-btn" class="expand-button" ><svg  style="transform: scale(1.2);" width="23px" height="23px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.46814 17.5319C5.62291 19.7154 7.92876 20.5 12 20.5C17.6255 20.5 19.8804 19.002 20.3853 14.3853M4.46814 17.5319C3.77924 16.2292 3.5 14.4288 3.5 12C3.5 5.5 5.5 3.5 12 3.5C18.5 3.5 20.5 5.5 20.5 12C20.5 12.8745 20.4638 13.6676 20.3853 14.3853M4.46814 17.5319L7.58579 14.4142C8.36684 13.6332 9.63317 13.6332 10.4142 14.4142L10.5858 14.5858C11.3668 15.3668 12.6332 15.3668 13.4142 14.5858L15.5858 12.4142C16.3668 11.6332 17.6332 11.6332 18.4142 12.4142L20.3853 14.3853M10.691 8.846C10.691 9.865 9.864 10.692 8.845 10.692C7.827 10.692 7 9.865 7 8.846C7 7.827 7.827 7 8.845 7C9.864 7 10.691 7.827 10.691 8.846Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="label">Image Gen</span></button>
+                            <button id="inco-btn" class="expand-button" onclick="this.classList.toggle('expanded')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 17.5C21 19.433 19.433 21 17.5 21C15.567 21 14 19.433 14 17.5C14 15.567 15.567 14 17.5 14C19.433 14 21 15.567 21 17.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M2 11H14M22 11H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 11L4.6138 8.54479C5.15947 6.36211 5.43231 5.27077 6.24609 4.63538C7.0057 4.0423 8.03639 4.00282 10 4.00019M20 11L19.3862 8.54479C18.8405 6.36211 18.5677 5.27077 17.7539 4.63538C16.9943 4.0423 15.9636 4.00282 14 4.00019" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10 17.5C10 19.433 8.433 21 6.5 21C4.567 21 3 19.433 3 17.5C3 15.567 4.567 14 6.5 14C8.433 14 10 15.567 10 17.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M10 17.4999L10.6584 17.1707C11.5029 16.7484 12.4971 16.7484 13.3416 17.1707L14 17.4999" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="label">Incognito</span></button>
                         </div>
                         <div class="sned-main-btn">
                             <button id="send-btn"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="icon"><path d="M8.99992 16V6.41407L5.70696 9.70704C5.31643 10.0976 4.68342 10.0976 4.29289 9.70704C3.90237 9.31652 3.90237 8.6835 4.29289 8.29298L9.29289 3.29298L9.36907 3.22462C9.76184 2.90427 10.3408 2.92686 10.707 3.29298L15.707 8.29298L15.7753 8.36915C16.0957 8.76192 16.0731 9.34092 15.707 9.70704C15.3408 10.0732 14.7618 10.0958 14.3691 9.7754L14.2929 9.70704L10.9999 6.41407V16C10.9999 16.5523 10.5522 17 9.99992 17C9.44764 17 8.99992 16.5523 8.99992 16Z"></path></svg></button>
@@ -131,6 +136,7 @@
             <iframe id="preview-iframe" class="desktop-view"></iframe>
         </div>
     </div>
+    
     <Script src="/static/icons.js"></Script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <script type="module">
@@ -139,6 +145,7 @@
     
         // --- NEW STATE MANAGEMENT ---
         let activeChatId = null;
+        let is_private = null ; 
         let streamingBuffer = "";
         let monacoEditor = null; // Variable to hold the Monaco Editor instance
 
@@ -162,8 +169,30 @@
         const searchBtn = document.getElementById('search-btn');
         const searchDropdown = document.getElementById('search-dropdown');
         const searchOptions = document.querySelectorAll('.search-option');
+
+        function toggleExclusiveButton(clickedButton) {
+            untoggleOtherButtons(clickedButton);
+            clickedButton.classList.toggle('expanded');
+        }
+        
+        function untoggleOtherButtons(exceptButton) {
+            const allToggleButtons = document.querySelectorAll('.controls-main .expand-button');
+            allToggleButtons.forEach(button => {
+                if (button !== exceptButton && button.id !== 'inco-btn') {
+                    button.classList.remove('expanded');
+                }
+            });
+            
+            if (exceptButton.id !== 'search-btn' && isSearchActive) {
+                deactivateSearch();
+            }
+        }
+
+
+
         searchBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    untoggleOtherButtons(searchBtn);
                     
                     // If search is currently active, deactivate it
                     if (isSearchActive) {
@@ -253,6 +282,16 @@
                         `;
                         svg.setAttribute('viewBox', '-0.5 0 25 25');
                         svg.setAttribute('fill', 'none');
+                    }
+                }
+
+                
+                function updateIncoButtonVisibility() {
+                    const incoBtn = document.getElementById('inco-btn');
+                    if (activeChatId) {
+                        incoBtn.style.display = 'none';
+                    } else {
+                        incoBtn.style.display = 'flex'; // or whatever the original display value was
                     }
                 }
         
@@ -481,11 +520,16 @@ function isMobileDevice() {
     function createNewChat() {
         closeHistoryPanel();
         activeChatId = null;
+        is_private =null;
+        if(document.getElementById('inco-btn').classList.contains('expanded')){
+            document.getElementById('inco-btn').classList.remove('expanded');
+        }
         clearChatView();
         renderMainChatView();
         renderRecommendations();
         updateSidebarActiveState();
         scrollToBottomBtn.style.display = 'none';
+        updateIncoButtonVisibility();
         
         // Reset input and show recommendations
         input.value = '';
@@ -749,66 +793,130 @@ async function loadHistoryPanel() {
         async function loadUserChats() {
             const chatList = document.getElementById('chat-list');
             if (!chatList) return;
-            
+          
             const res = await fetch('/chats');
             const chats = await res.json();
             chatList.innerHTML = ''; // Clear previous list
-            
-            if (chats.length > 0) {
-                chats.forEach(chat => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'chat-list-wrapper';
-                
-                    const div = document.createElement('div');
-                    div.className = 'chat-list-item';
-                    const titleDiv = document.createElement('div');
-                    titleDiv.textContent = chat.title;
-                    titleDiv.className = 'chat-list-title';
-                    div.appendChild(titleDiv);
-                    div.dataset.chatId = chat.id;
-                    div.onclick = () => selectChat(chat.id);
-                    
-                    const menuWrapper = document.createElement('div');
-                    menuWrapper.className = 'chat-menu-wrapper';
-    
-                    const menuBtn = document.createElement('button');
-                    menuBtn.className = 'chat-menu-btn';
-                    menuBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        toggleMenu(chat.id);
-                    };
-    
-                    menuBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24"><path d="M13 5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5C11 5.55228 11.4477 6 12 6C12.5523 6 13 5.55228 13 5Z" stroke="currentColor"/><path d="M13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13C12.5523 13 13 12.5523 13 12Z" stroke="currentColor"/><path d="M13 19C13 18.4477 12.5523 18 12 18C11.4477 18 11 18.4477 11 19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19Z" stroke="currentColor"/></svg>`;
-    
-                    menuWrapper.appendChild(menuBtn);
-    
-                    const menu = document.createElement('div');
-                    menu.className = 'chat-menu';
-                    menu.dataset.chatId = chat.id;
-                    menu.innerHTML = `<div onclick="renameChat(${chat.id})">Rename</div><div onclick="deleteChat(${chat.id})">Delete</div>`;
-                    div.appendChild(menuWrapper);
-                    wrapper.appendChild(div);
-                    
-                    wrapper.appendChild(menu);
-                    chatList.appendChild(wrapper);
-                });
-                
-                if (activeChatId === null) {
-                    clearChatView();
-                    renderMainChatView();
-                    renderRecommendations();
-
-                }
-            } else {
-                if (activeChatId === null) {
-                    clearChatView();
-                    renderMainChatView();
-                    renderRecommendations();
-
-                }
+          
+            // helper to format timestamp per your rules
+            function formatChatTimestamp(isoString) {
+              if (!isoString) return '';
+              const d = new Date(isoString);
+              if (isNaN(d)) return '';
+          
+              const now = new Date();
+          
+              // start of current week (Sunday)
+              const day = now.getDay(); // 0 = Sunday
+              const startOfWeek = new Date(now);
+              startOfWeek.setHours(0,0,0,0);
+              startOfWeek.setDate(now.getDate() - day);
+          
+              // same day ?
+              const isSameDay = d.getFullYear() === now.getFullYear() &&
+                                d.getMonth() === now.getMonth() &&
+                                d.getDate() === now.getDate();
+          
+              if (isSameDay) {
+                // show time in 12-hour format (e.g. 3:12 PM)
+                return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
+              } else if (d >= startOfWeek) {
+                // show weekday name (e.g. Sunday, Monday)
+                return d.toLocaleDateString(undefined, { weekday: 'long' });
+              } else {
+                // show short date like "Sep 15"
+                return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+              }
             }
+          
+            if (chats.length > 0) {
+              chats.forEach(chat => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'chat-list-wrapper';
+          
+                const div = document.createElement('div');
+                div.className = 'chat-list-item';
+                div.dataset.chatId = chat.id;
+                div.onclick = () => selectChat(chat.id);
+          
+                const left = document.createElement('div');
+                left.style.display = 'flex';
+                left.style.flexDirection = 'column';
+                left.style.gap = '2px';
+                const chatdelta = document.createElement('div');
+                chatdelta.className='chat-delta';
+                const titleDiv = document.createElement('div');
+                titleDiv.textContent = chat.title || 'Untitled';
+                titleDiv.className = 'chat-list-title';
+          
+                left.appendChild(titleDiv);
+          
+                // optional subtitle (could be last message preview later)
+                // const subtitle = document.createElement('div');
+                // subtitle.className = 'chat-list-subtitle';
+                // subtitle.textContent = '...';
+                // left.appendChild(subtitle);
+                chatdelta.appendChild(left)
+          
+                // Right side: timestamp + menu
+                const right = document.createElement('div');
+                right.style.display = 'flex';
+                right.style.alignItems = 'center';
+                right.style.gap = '8px';
+                right.style.fontSize = '11px';
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'chat-list-timestamp';
+                timeSpan.textContent = formatChatTimestamp(chat.created_at);
+                // store raw timestamp if needed later
+                timeSpan.dataset.iso = chat.created_at || '';
+          
+                right.appendChild(timeSpan);
+          
+                const menuWrapper = document.createElement('div');
+                menuWrapper.className = 'chat-menu-wrapper';
+          
+                const menuBtn = document.createElement('button');
+                menuBtn.className = 'chat-menu-btn';
+                menuBtn.onclick = (e) => {
+                  e.stopPropagation();
+                  toggleMenu(chat.id);
+                };
+                menuBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24"><path d="M13 5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5C11 5.55228 11.4477 6 12 6C12.5523 6 13 5.55228 13 5Z" stroke="currentColor"/><path d="M13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13C12.5523 13 13 12.5523 13 12Z" stroke="currentColor"/><path d="M13 19C13 18.4477 12.5523 18 12 18C11.4477 18 11 18.4477 11 19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19Z" stroke="currentColor"/></svg>`;
+          
+                menuWrapper.appendChild(menuBtn);
+                
+          
+                // menu (hidden by default)
+                const menu = document.createElement('div');
+                menu.className = 'chat-menu';
+                menu.dataset.chatId = chat.id;
+                menu.innerHTML = `<div onclick="renameChat(${chat.id})">Rename</div><div onclick="deleteChat(${chat.id})">Delete</div>`;
+          
+                chatdelta.appendChild(right)
+                div.appendChild(chatdelta);
+                div.appendChild(menuWrapper);
+                wrapper.appendChild(div);
+                wrapper.appendChild(menu);
+          
+                chatList.appendChild(wrapper);
+              });
+          
+              if (activeChatId === null) {
+                clearChatView();
+                renderMainChatView();
+                renderRecommendations();
+              }
+            } else {
+              if (activeChatId === null) {
+                clearChatView();
+                renderMainChatView();
+                renderRecommendations();
+              }
+            }
+          
             updateSidebarActiveState();
-        }
+          }
+          
 
         async function loadCodeFiles() {
             const codeFilesList = document.getElementById('code-files-list');
@@ -844,6 +952,10 @@ async function loadHistoryPanel() {
             updateSidebarActiveState();
             loadChatHistory(chatId);
             closeHistoryPanel();
+            if(document.getElementById('inco-btn').classList.contains('expanded')){
+                document.getElementById('inco-btn').classList.remove('expanded');
+            }
+            updateIncoButtonVisibility();
         }
         
         async function loadChatHistory(chatId) {
@@ -889,6 +1001,7 @@ async function loadHistoryPanel() {
             if (!msg && uploadedFiles.length === 0) return;
         
             let currentChatId = activeChatId;
+            updateIncoButtonVisibility();
             if (uploadedFiles.length > 0) {
                 const files = uploadedFiles.map(file => ({
                     filename: file.filename,
@@ -907,22 +1020,30 @@ async function loadHistoryPanel() {
                 if (msg) {
                     msg = imageLinks + msg;
                 } else {
-                    msg = imageLinks.trim(); // in case there’s no message, just send images
+                    msg = imageLinks.trim(); 
                 }
 
             }
         
-            // Only create new chat if we successfully have a message to send
+
+
             if (!currentChatId) {
                 try {
+                    const bodyData = { message: msg };
+                    if (document.getElementById('inco-btn').classList.contains('expanded')) {
+                        bodyData.is_private = 1; 
+                    }
+
                     const res = await fetch('/chats', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ message: msg }),
+                        body: JSON.stringify(bodyData),
                     });
+
                     if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
                     const newChat = await res.json();
                     currentChatId = newChat.id;
                     activeChatId = newChat.id;
@@ -933,6 +1054,7 @@ async function loadHistoryPanel() {
                     return;
                 }
             }
+
 
             const requestBody = {
                 message: msg,
@@ -951,6 +1073,12 @@ async function loadHistoryPanel() {
             appendMessageToChat(msg, 'user');
             if (uploadedFiles.length > 0) {
                 // You can add visual indication of files in the message
+            }
+
+            const isPrivate = document.getElementById('inco-btn').classList.contains('expanded');
+            if(isPrivate){
+                is_private = 1;
+                console.log(is_private);
             }
         
             // Determine status text based on selected mode
@@ -1840,7 +1968,7 @@ async function loadHistoryPanel() {
         const mobileRecommendations = ['help me', 'Analyse docs', 'Unit tests', 'Latest News'];
 
         function renderMainChatView(){
-            chatContainer.innerHTML = `<div class="nex-head">${NexIco}<span>Nexora</span></div> <div class="private-ch">${PrvtIco}<span>Incognito</span></div>`
+            chatContainer.innerHTML = `<div class="nex-head">${NexIco}<span>Nexora</span></div>`
         }
 
         function renderRecommendations() {
@@ -1875,9 +2003,7 @@ async function loadHistoryPanel() {
             recContainer.innerHTML = '';
 
             const nexHead = chatContainer.querySelector('.nex-head');
-            const privateCh = chatContainer.querySelector('.private-ch');
             if (nexHead) nexHead.remove();
-            if (privateCh) privateCh.remove();
         }
         function autoResize() {
             input.style.height = 'auto';
@@ -1936,6 +2062,19 @@ async function loadHistoryPanel() {
                 // Check scroll position after touch ends
                 setTimeout(checkScrollButtonVisibility, 100);
             }, { passive: true });
+
+
+            document.getElementById('reason-btn').addEventListener('click', function() {
+                toggleExclusiveButton(this);
+            });
+            
+            document.getElementById('sys-access').addEventListener('click', function() {
+                toggleExclusiveButton(this);
+            });
+            
+            document.getElementById('img-btn').addEventListener('click', function() {
+                toggleExclusiveButton(this);
+            });
 
             
         });

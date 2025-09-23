@@ -456,18 +456,7 @@
         margin: 8px;
     }
 
-    /* Private chat indicator */
-    .private-ch {
-        right: 3px;
-        top: 3px;
-        padding: 8px 12px;
-        font-size: 0.8rem;
-        border: none;
-        color: inherit;
-    }
-    .private-ch span {
-        display: none;
-    }
+
 
     /* Navigation icons */
     svg.nav-icon {

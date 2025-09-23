@@ -662,7 +662,8 @@ transition: width 0.3s ease, background-color 0.3s ease;
     border-radius: auto;
     background-color: transparent;
     max-width: 400px;
-    margin: 2px auto; 
+    margin: 2px auto;
+    white-space: normal; 
   }
   
   .custom-image-wrapper {

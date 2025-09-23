@@ -5,12 +5,19 @@ import aiohttp
 import certifi
 import asyncio
 import json
-from googlesearch import search
+
 from aiohttp import ClientSession, TCPConnector
 from bs4 import BeautifulSoup
 from openai import OpenAI
 
+# Use DDGS (duckduckgo) only for searching links
+try:
+    from ddgs import DDGS
+except Exception:
+    DDGS = None
+
 from tiktoken import get_encoding
+
 
 def truncate_prompt_text(prompt_text, max_tokens=24000):
     enc = get_encoding("cl100k_base")
@@ -22,24 +29,25 @@ def truncate_prompt_text(prompt_text, max_tokens=24000):
 
 # --- Configuration Variables ---
 API_KEY = "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"
-QUERY = "what is cispr in medical" # This is a placeholder, actual query comes from req.message
-NUM_LINKS = 3
+QUERY = "what is cispr in medical"  # This is a placeholder, actual query comes from req.message
+NUM_LINKS = 5
 LINK_CHAR_LIMIT = 5000
 LLM_MODEL = "qwen/qwen2.5-vl-32b-instruct:free"
 SYSTEM_PROMPT = (
-    "You are a research assistant that summarizes only the most relevant parts of web search results based on the user's query."
-    "Your summaries MUST help the user discover only the content most aligned with their intent."
-    "For EACH search result, respond with a structured format beginning EXACTLY as: '|#n|(URL)' — with no spaces between symbols."
-    "Immediately follow with a brief but meaningful summary focused ONLY on the relevant content matching the user's query."
-    "Avoid summarizing irrelevant parts of a page or generic introductions."
-    "If multiple results from the same site exist, summarize them separately."
-    "Never list more than 5 key ideas per source. Group ideas if useful."
-    "Be concise but precise. Avoid vague phrases like 'many ideas' or 'a variety of topics'."
-    "NEVER include introductory or concluding remarks."
-    "Examples:"
-    "|#1|(https://example.com/page)Includes 3 trending AI-based project ideas for college students, such as an automated resume scanner, a plagiarism detector using BERT, and a chatbot using GPT."
-    "|#2|(https://example.edu/ideas)Provides a categorized list of 10 software project ideas, including mobile mental health apps, gamified STEM learning platforms, and AR field trip guides."
+    "You are a hybrid assistant that can do two things depending on the user input:\n\n"
+    "1. **If the user input is a search query** (e.g., 'Top programming languages for data science in 2025'), "
+    "extract and structure ONLY the most relevant content from search results. "
+    "For EACH result, show reference as plain text: '|#n|(URL)'.eg:  |#1|(https://examle.com)"
+    "After the URL, output scraped key findings in a structured format using headings, bullets, numbered lists, or tables. "
+    "Do NOT include irrelevant site navigation, ads, or filler phrases.\n\n"
+    "2. **If the user input is a question or conversational query** (e.g., 'Is Hamster Kombat a Bitcoin?'), "
+    "respond naturally in a concise chatbot style, confirming or correcting the user's assumption. "
+    "Your reply should be friendly, conversational, and directly answer the question.\n\n"
+    "Always preserve meaning and clarity, and choose the output style automatically based on the input."
 )
+
+
+
 
 
 
@@ -98,20 +106,42 @@ HEADERS_LIST = [
     }
 ]
 
-def get_search_links(query, num_links=NUM_LINKS):
-    """
-    Performs a Google search and returns a list of valid URLs.
-    This function executes first and returns the links before any scraping begins.
-    """
-    print(f"Fetching {num_links} links for query: '{query}'...")
-    try:
-        raw_links = list(search(query, num_results=num_links * 2))  # Fetch extra links to ensure we get enough valid ones
-        links = [url for url in raw_links if url.startswith(('http://', 'https://'))][:num_links]
-        print("Successfully fetched links.")
-        return links
-    except Exception as e:
-        print(f"An error occurred during Google search: {e}")
+
+def _ddg_search_query(query, max_results):
+    """Perform a DuckDuckGo text search using DDGS and return a list of result dicts."""
+    if DDGS is None:
+        print("DDGS (duckduckgo-search) is not installed. Install with: pip install ddgs")
         return []
+
+    try:
+        with DDGS() as ddgs:
+            return list(ddgs.text(query, max_results=max_results)) or []
+    except Exception as e:
+        print(f"DuckDuckGo search error: {e}")
+        return []
+
+
+def get_search_links(query, num_links=NUM_LINKS):
+    """Fetches search links using DuckDuckGo (DDGS) only."""
+    print(f"Fetching {num_links} links for query: '{query}' using DDGS...")
+
+    links = []
+    results = _ddg_search_query(query, max_results=num_links * 2)
+    for r in results:
+        # handle different key names across versions
+        url = r.get("href") or r.get("url") or r.get("link")
+        if url and url.startswith(("http://", "https://")) and url not in links:
+            links.append(url)
+        if len(links) >= num_links:
+            break
+
+    if not links:
+        print("No links found via DDGS.")
+    else:
+        print(f"Fetched {len(links)} links from DDGS.")
+
+    return links[:num_links]
+
 
 async def extract_content_from_url(url, session, timeout=10):
     """Asynchronously fetches and extracts paragraph text from a single URL."""
@@ -129,55 +159,62 @@ async def extract_content_from_url(url, session, timeout=10):
     soup = BeautifulSoup(html, "html.parser")
     return "\n".join(p.get_text(strip=True) for p in soup.find_all("p"))
 
+from hashlib import sha256
 async def scrape_links_content_async(links, limit_chars=LINK_CHAR_LIMIT):
-    """
-    Asynchronously scrapes content from a provided list of URLs.
-    This function runs all scraping requests concurrently for better performance.
-    """
     ssl_ctx = ssl.create_default_context(cafile=certifi.where())
     connector = TCPConnector(ssl=ssl_ctx)
-    timeout = aiohttp.ClientTimeout(total=15) # Increased timeout slightly
+    timeout = aiohttp.ClientTimeout(total=15)
     results = []
 
     async with ClientSession(connector=connector, timeout=timeout) as session:
-        # Create a list of tasks to run concurrently
         tasks = [extract_content_from_url(url, session) for url in links]
-        # Wait for all tasks to complete
         contents = await asyncio.gather(*tasks, return_exceptions=True)
 
+    seen_hashes = set()
     for url, content in zip(links, contents):
-        if isinstance(content, Exception) or content is None:
-            snippet = None
-        else:
-            snippet = (content[:limit_chars] + "…" if len(content) > limit_chars else content)
-        
+        # Skip errors or empty content
+        if isinstance(content, Exception) or not content:
+            continue
+
+        # Deduplicate content
+        h = sha256(content.encode('utf-8')).hexdigest()
+        if h in seen_hashes:
+            continue
+        seen_hashes.add(h)
+
+        snippet = (content[:limit_chars] + "…" if len(content) > limit_chars else content)
         results.append({"url": url, "content": snippet})
     
     return results
 
-# STEP 2: Scrape content from the links you received from Step 1.
+
 def get_content_from_links(links, limit_chars=LINK_CHAR_LIMIT):
-    """
-    Synchronous wrapper that takes a list of links and scrapes their content.
-    """
+
     if not links:
         print("No links provided to scrape.")
         return []
+
     print(f"Scraping content from {len(links)} links...")
     scraped_data = asyncio.run(scrape_links_content_async(links, limit_chars))
     print("Scraping complete.")
     return scraped_data
 
+
+
 # Initialize OpenAI client
 def create_openai_client(api_key, base_url="https://openrouter.ai/api/v1"):
     return OpenAI(base_url=base_url, api_key=api_key)
 
+
 # Example of the new workflow
 if __name__ == '__main__':
     # 1. Call the first function to get links immediately.
-    search_query = "what is CRISPR in medicine"
+    search_query = "latest news in english kannur"
     retrieved_links = get_search_links(search_query, num_links=NUM_LINKS)
     print(retrieved_links)
-    formatted_source_links = " ".join([f"[[!]]({link})" for link in retrieved_links])
-    links_src=f':::(src){formatted_source_links}:::(src)'
-    print(f"event: bot\ndata: {json.dumps(links_src)}\n\n")
+    results = get_content_from_links(retrieved_links)
+    prompt_parts = [f"[#{i+1}]({res['url']})\n{res.get('content', '<No content>')}\n" for i, res in enumerate(results)]
+    # formatted_source_links = " ".join([f"[[!]]({link})" for link in retrieved_links])
+    # links_src=f':::(src){formatted_source_links}:::(src)'
+    # print(f"event: bot\ndata: {json.dumps(links_src)}\n\n")
+    print(results)
