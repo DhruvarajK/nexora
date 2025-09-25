@@ -337,7 +337,7 @@
     .bubble-user, .message-text {
         background: #0a0a0a;
         color: #ffffff;
-        border: 1px solid #717171;
+        border: 1px solid #474747;
     }
     .bubble-user.has-images { background: transparent; border: none; padding: 0; }
     .bubble-bot {
@@ -391,7 +391,7 @@
     /* input / suggestion */
     .input-box {
         background-color: #060606;
-        border: 1px solid #717171;
+        border: 1px solid #474747;
     }
 
     #input-msg { background: inherit; color: #e9e9e9; }
@@ -408,7 +408,7 @@
     .rec-block {
       color: #eaf6ff;
     background-color: #0d0d0e7d;
-    border: 1px solid #717171;
+    border: 1px solid #474747;
     }
     .rec-block:hover { background-color: #3030315e }
 
@@ -438,10 +438,10 @@
     .modal-content {
       background: #0f1724;
       color: #e6eef8;
-      border: 1px solid #717171;
+      border: 1px solid #474747;
       box-shadow: 0 6px 20px rgba(0,0,0,0.6);
     }
-    .modal-content input { background: #0b1220; color: #f0f0f0; border: 1px solid #717171; }
+    .modal-content input { background: #0b1220; color: #f0f0f0; border: 1px solid #474747; }
     #confirmRename, #confirmDelete { background: #4a5568; color: #fff; }
     #cancelRename, #cancelDelete { background: #22303b; color: #f0f0f0; }
   
@@ -469,7 +469,7 @@
     #canvas-chat-send { background-color: #ffffff; color: #000; } /* white send button still ok in dark */
 
     .src-con {
-        border: 1px solid #717171;
+        border: 1px solid #474747;
         background-color: #000000;
     }
 
@@ -481,19 +481,19 @@
     .play-button-bg { background-color: #e11d48; } /* keeps red play look */
   
     /* scroll to bottom */
-    #scroll-to-bottom-btn { background: #060606; color: #dbefff; border: 1px solid #717171; }
+    #scroll-to-bottom-btn { background: #060606; color: #dbefff; border: 1px solid #474747; }
 
     /* "body:has" interactions (keep accent but subtle) */
     body:has(#inco-btn.expanded) .input-box {
       background-color: rgba(147,156,255,0.06);
-      border: 1px solid #717171;
+      border: 1px solid #474747;
     }
     body:has(#inco-btn.expanded) .nex-head {
       color: rgba(147,156,255,0.45);
     }
     body:has(#inco-btn.expanded) .bubble-user {
       background-color: rgba(147,156,255,0.04);
-      border: 1px solid #717171;
+      border: 1px solid #474747;
     }
 
   
@@ -541,7 +541,7 @@
     pre code.hljs {
         background: #202020 !important;
         border-color: #2e2f30;
-        border: 1px solid #717171;
+        border: 1px solid #2b2727;
     }
     .dark-mode pre code.hljs { background: #0f1724 !important; }
     .bubble-bot .message-buttons .copy-btn:hover {
@@ -709,7 +709,7 @@
         background: #000000;
     }
     .source-item {
-        border: 1px solid #717171;
+        border: 1px solid #474747;
         background-color: #0e0e0e;
     }
     .panel-header h2 {
