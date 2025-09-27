@@ -20,7 +20,10 @@
       background: #ffffff;
     }
     .images-modal__title,#close-modal-btn svg{
-      color: rgb(0, 0, 0);
+      color: #000000;
+    }
+    .custom-image-wrapper {
+      background-color: #e4e4e4;
     }
     .spinner-img, .thumb-spinner .spinner-img {
       border: 4px solid #555555;
@@ -743,6 +746,11 @@
       border-top: 4px solid #313131;
 
   }
+
+  .custom-image-wrapper {
+    background-color: #363636;
+  }
+
   }
   
   

@@ -660,7 +660,7 @@ transition: width 0.3s ease, background-color 0.3s ease;
     align-items: center;
     border: none;
     border-radius: auto;
-    background-color: transparent;
+    background-color: #e4e4e4;
     max-width: 400px;
     margin: 2px auto;
     white-space: normal; 

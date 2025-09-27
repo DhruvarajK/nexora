@@ -1917,6 +1917,12 @@ body:has(#inco-btn.expanded) .bubble-user {
   margin-top: 50%;
 }
 
+.new-img-btn
+ {
+    padding: 10px 10px;
+    margin: 5px;
+}
+
 /* Caption */
 .prompt{
   font-size: 13px;
@@ -1957,12 +1963,9 @@ display: none;
   .images-modal__panel { padding: 16px; border-radius: 0;}
   .images-modal__title { font-size: 18px; padding-left: 27px; }
   .images-modal__close{ left: 9px;}
-  span.desk-close {
-    display: none;
-}
-span.mob-clos {
-  display: flex;
-}
+  span.desk-close {display: none;}
+  span.mob-clos {display: flex;}
+  .new-img-btn {padding: 12px;margin: 7px;}
 
 #close-modal-btn svg {
   width: 22px;

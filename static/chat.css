@@ -698,6 +698,8 @@ span.streaming-indicator {
   gap: 12px;
   outline: none;
   z-index: 2;
+  width: max-content;
+  height: max-content;
 }
 
 /* close button */

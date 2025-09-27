@@ -1,6 +1,7 @@
 
 import base64
 from io import BytesIO
+import mimetypes
 import os
 from pathlib import Path
 import platform
@@ -430,35 +431,117 @@ def parse_message_with_images(message: str):
     return content if content else [{"type": "text", "text": message.strip()}]
 
 
+import io
 
-def generate_and_upload_sync(prompt: str, user_id: int) -> str:
+import requests
+from pathlib import Path
+from huggingface_hub import InferenceClient
+from PIL import Image
+hf_client = InferenceClient(provider="hf-inference", api_key=os.environ.get("HF_TOKEN"))
+
+def upload_bytes_to_supabase(file_bytes: bytes, extension: str = ".png", bucket_name="nexora-ai"):
+    """Upload raw bytes to Supabase storage and return the public URL."""
+    filename = f"{uuid.uuid4().hex}{extension}"
+    mime_type, _ = mimetypes.guess_type(filename)
+    if mime_type is None:
+        mime_type = "application/octet-stream"
+
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise ValueError("SUPABASE_URL and SUPABASE_KEY must be set in environment variables")
+
+    upload_url = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/{bucket_name}/{filename}"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": mime_type,
+    }
+
+    resp = requests.post(upload_url, data=file_bytes, headers=headers, timeout=60)
+    if resp.status_code not in (200, 201):
+        raise Exception(f"Upload failed with status code {resp.status_code}: {resp.text}")
+
+    public_url = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{bucket_name}/{filename}"
+    return public_url
+
+def generate_and_upload_sync(prompt: str, user_id: int, model: str = "black-forest-labs/FLUX.1-schnell") -> str:
+    """
+    Generate image via Hugging Face InferenceClient, upload to Supabase,
+    insert record into images table, and return the Supabase public URL.
+    """
     print("generate_and_upload_sync: called, user_id type:", type(user_id), "value:", user_id)
-    input_data = {"prompt": prompt}
 
+    # 1) Generate image using huggingface InferenceClient
     try:
-        output = replicate.run("black-forest-labs/flux-dev", input=input_data)
-        public_url = output[0] if output else None
-        if not public_url:
-            print("generate_and_upload_sync: Replicate returned no output.")
-            return ""
-        public_url = str(public_url)   # ensure it's a plain string
+        result = hf_client.text_to_image(prompt, model=model)
     except Exception as e:
-        print("generate_and_upload_sync: Replicate call failed.", e)
+        print("generate_and_upload_sync: HF client call failed.", e)
         return ""
 
+    # 2) Normalize output to bytes and determine extension
+    image_bytes = None
+    ext = ".png"
+    try:
+        # If the client returns a PIL.Image object:
+        if isinstance(result, Image.Image):
+            pil_img = result
+            fmt = pil_img.format or "PNG"
+            ext = f".{fmt.lower()}"
+            buf = io.BytesIO()
+            pil_img.save(buf, format=fmt)
+            image_bytes = buf.getvalue()
+        # If the client returned bytes (some clients might)
+        elif isinstance(result, (bytes, bytearray)):
+            image_bytes = bytes(result)
+            # extension unknown — default to png
+            ext = ".png"
+        # If the client returned a dict or other structure that contains bytes
+        elif isinstance(result, dict) and "image" in result:
+            # try to handle result["image"] if it's bytes or PIL
+            candidate = result["image"]
+            if isinstance(candidate, Image.Image):
+                pil_img = candidate
+                fmt = pil_img.format or "PNG"
+                ext = f".{fmt.lower()}"
+                buf = io.BytesIO()
+                pil_img.save(buf, format=fmt)
+                image_bytes = buf.getvalue()
+            elif isinstance(candidate, (bytes, bytearray)):
+                image_bytes = bytes(candidate)
+            else:
+                # fallback: try str -> bytes
+                image_bytes = str(candidate).encode("utf-8")
+        else:
+            # last-resort: try to convert to bytes
+            image_bytes = str(result).encode("utf-8")
+    except Exception as e:
+        print("generate_and_upload_sync: converting HF result to bytes failed.", e)
+        return ""
+
+    if not image_bytes:
+        print("generate_and_upload_sync: no image bytes obtained from HF result.")
+        return ""
+
+    # 3) Upload to Supabase
+    try:
+        supabase_public_url = upload_bytes_to_supabase(image_bytes, extension=ext, bucket_name="nexora-ai")
+    except Exception as e:
+        print("generate_and_upload_sync: Supabase upload failed.", e)
+        return ""
+
+    # 4) Insert into DB
     try:
         cur = conn.cursor()
-        # make sure user_id and public_url are simple scalar types
         if not isinstance(user_id, (int, str)):
             raise TypeError("user_id must be int or str, got: %r" % type(user_id))
         cur.execute(
             "INSERT INTO images (user_id, image_url, prompt) VALUES (?, ?, ?)",
-            (int(user_id), public_url, prompt)
+            (int(user_id), supabase_public_url, prompt)
         )
         conn.commit()
         cur.close()
     except Exception as e:
-        # rollback on error
         try:
             conn.rollback()
         except Exception:
@@ -466,8 +549,7 @@ def generate_and_upload_sync(prompt: str, user_id: int) -> str:
         print("generate_and_upload_sync: DB insert/commit failed.", e)
         return ""
 
-    return public_url
-
+    return supabase_public_url
 
 @app.post("/generate-image")
 async def generate_image_stream(req: ChatRequest, user_id: int = Depends(get_current_user_id)):
