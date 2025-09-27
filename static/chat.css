@@ -521,7 +521,7 @@ span.streaming-indicator {
   display: inline-block;
   vertical-align: middle;
   background: #f4f4f4;            /* neutral bg while loading */
-  border-radius: 6px;             /* optional rounded corners */
+  border-radius: 25px;             /* optional rounded corners */
 }
 
 /* The image itself is sized to fill the square and cropped (cover) to preserve aspect ratio */
@@ -574,7 +574,7 @@ span.streaming-indicator {
 
 /* Optional: responsive sizing example */
 @media (max-width: 420px) {
-  .custom-image-wrapper { --image-size: 110px; }
+  .custom-image-wrapper { --image-size: 200px; }
 }
 
 /* ---------- File card styles ---------- */
@@ -769,8 +769,8 @@ span.streaming-indicator {
 
 /* image */
 .clb-image {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 400px;
+  max-height: 400px;
   display: block;
   opacity: 0;
   transition: opacity .18s ease;
@@ -782,13 +782,13 @@ span.streaming-indicator {
 /* info area */
 .clb-info {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
-  color: #e6eef8;
   padding: 8px 12px;
 }
 .clb-caption {
+  display: none;
   font-size: 14px;
   color: #d9eefc;
   max-width: 70%;
@@ -809,10 +809,10 @@ span.streaming-indicator {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 18px;
   text-decoration: none;
-  color: #081126;
-  background: #e6f2ff;
+  color: black;
+  background: white;
   font-weight: 600;
   font-size: 13px;
   border: 0;

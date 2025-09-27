@@ -23,7 +23,8 @@ client = OpenAI(
     api_key=API_KEY,
 )
 
-MODEL_NAME = "qwen/qwen-2.5-coder-32b-instruct:free"
+# MODEL_NAME = "qwen/qwen-2.5-coder-32b-instruct:free"
+MODEL_NAME = "qwen/qwen-2.5-72b-instruct:free"
 
 OUTPUT_DIR = Path("./outputs")
 OUTPUT_DIR.mkdir(exist_ok=True)

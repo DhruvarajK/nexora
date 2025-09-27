@@ -1101,6 +1101,7 @@ async function loadHistoryPanel() {
             const isReasoning = document.getElementById('reason-btn').classList.contains('expanded');
             const isSearching = isSearchActive;
             const isSystem = document.getElementById('sys-access').classList.contains('expanded');
+            const isImgGen = document.getElementById('img-btn').classList.contains('expanded');
             let endpoint = '/chat';
             let statusText = 'typing...';
             if (isSearching && selectedSearchOption === 'web') {
@@ -1115,6 +1116,10 @@ async function loadHistoryPanel() {
             } else if (isSystem) {
                 endpoint = '/exec-chat';
                 statusText = 'executing...';
+            }
+            else if (isImgGen) {
+                endpoint = '/generate-image';
+                statusText = 'Generating...';
             }
         
             appendMessageToChat('', 'bot', statusText);

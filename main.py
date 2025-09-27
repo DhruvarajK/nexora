@@ -2,17 +2,20 @@
 import base64
 from io import BytesIO
 import os
+from pathlib import Path
 import platform
 import re
 import sqlite3
 import json
 import subprocess
+import uuid
 from fastapi import Body, Depends, FastAPI, HTTPException, Request,Form
 from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import httpx
 from pydantic import BaseModel
+import replicate
 from scraper import get_content_from_links,SYSTEM_PROMPT,LLM_MODEL, get_search_links, truncate_prompt_text
 import os
 from io import BytesIO
@@ -21,11 +24,15 @@ import time
 import logging
 import tempfile
 from exctr import executer_v3,execute_pip_commands,execute_python_code
-from openai import OpenAI
+from openai import OpenAI, _client
 from passlib.context import CryptContext
 from typing import Optional
 from starlette.middleware.sessions import SessionMiddleware
 import os
+import asyncio
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_PATH = "chat_history.db"
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -88,6 +95,16 @@ CREATE TABLE IF NOT EXISTS chats (
 
 
 cursor.execute("""
+CREATE TABLE IF NOT EXISTS images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    image_url TEXT NOT NULL,
+    prompt TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+""")
+conn.commit()
+
+cursor.execute("""
 CREATE TABLE IF NOT EXISTS history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     chat_id INTEGER NOT NULL,
@@ -116,6 +133,16 @@ CREATE TABLE IF NOT EXISTS code_files (
     code TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id)
+)
+""")
+conn.commit()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    image_url TEXT NOT NULL,
+    prompt TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )
 """)
 conn.commit()
@@ -399,6 +426,78 @@ def parse_message_with_images(message: str):
                 })
     return content if content else [{"type": "text", "text": message.strip()}]
 
+
+
+def generate_and_upload_sync(prompt: str) -> str:
+    input_data = {
+        "prompt": prompt
+    }
+    output = replicate.run(
+        "black-forest-labs/flux-dev",
+        input=input_data
+    )
+    public_url = output[0]
+    paren_bracket_variant = f"{public_url}"
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO images (image_url, prompt) VALUES (?, ?)",
+            (paren_bracket_variant, prompt)
+        )
+        conn.commit()
+    except Exception as e:
+        print("generate_and_upload_sync: DB insert/commit failed (continuing).",e)
+
+    return public_url
+
+
+@app.post("/generate-image")
+async def generate_image_stream(req: ChatRequest):
+    prompt = req.message
+    chat_id = req.chat_id
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt is required")
+    if not chat_id:
+        raise HTTPException(status_code=400, detail="chat_id is required")
+
+    def sse_event(name: str, payload: str) -> str:
+        logger.debug("sse_event: name=%s payload_length=%d", name, len(payload) if payload is not None else 0)
+        try:
+            return f"event: {name}\ndata: {json.dumps(payload)}\n\n"
+        except Exception:
+            return f"event: {name}\ndata: {str(payload)}\n\n"
+
+    async def event_generator():
+        yield sse_event("user", prompt)
+        try:
+            public_url = await asyncio.to_thread(generate_and_upload_sync, prompt)
+        except Exception as e:
+            yield sse_event("error", f"Image generation/upload failed: {str(e)}")
+            return
+
+        try:
+            paren_bracket_variant = f"[{prompt}]({public_url})"
+            yield sse_event("bot", paren_bracket_variant)
+            user_text_with_link = f"{prompt}"
+            bot_text = paren_bracket_variant
+            try:
+                add_history(chat_id, user_text_with_link, bot_text)
+            except Exception:
+                print("error")
+        except Exception:
+            yield sse_event("error", "Unexpected error during SSE streaming")
+            return
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+
+@app.get("/images")
+def list_images(limit: int = 50):
+    cur = conn.cursor()
+    cur.execute("SELECT id, image_url, prompt, created_at FROM images ORDER BY created_at DESC LIMIT ?", (limit,))
+    rows = [dict(r) for r in cur.fetchall()]
+    return {"count": len(rows), "images": rows}
+
 @app.post("/chat")
 async def chat_stream(req: ChatRequest):
     user_msg = req.message
@@ -440,6 +539,8 @@ async def chat_stream(req: ChatRequest):
         add_history(chat_id, user_msg, bot_buffer)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
 
 
 @app.post("/exec-chat")
