@@ -1911,9 +1911,10 @@ body:has(#inco-btn.expanded) .bubble-user {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--accent);
+  border: 4px solid #555555;
+  border-top: 4px solid #fdfdfd;
   animation: spin 1s linear infinite;
+  margin-top: 50%;
 }
 
 /* Caption */

@@ -22,6 +22,10 @@
     .images-modal__title,#close-modal-btn svg{
       color: rgb(0, 0, 0);
     }
+    .spinner-img, .thumb-spinner .spinner-img {
+      border: 4px solid #555555;
+      border-top: 4px solid #fdfdfd;
+    }
   
     /* containers / panels */
     #history, #chat-box, .sliding-panel, .panel-content, .panel-header, .exec-code-content {
@@ -734,6 +738,11 @@
     .images-modal__title,#close-modal-btn svg{
       color: white;
     }
+    .spinner-img, .thumb-spinner .spinner-img {
+      border: 4px solid #b5b5b5;
+      border-top: 4px solid #313131;
+
+  }
   }
   
   
