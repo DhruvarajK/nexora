@@ -329,11 +329,10 @@ padding-left: 0.5em;
     background-clip: text;
     color: transparent;
     background-size: 200% 100%;
-    animation: gradient 2.4s linear infinite;
-    font-size: 19px;
-    font-family: monospace;
-    font-weight: 100;
-    font-style: italic;
+    animation: gradient 2.0s linear infinite;
+    font-size: 15px;
+    font-family: system-ui;
+    font-weight: 400;
     margin-bottom: 10px;
 }
 @keyframes gradient {

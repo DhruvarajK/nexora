@@ -1056,30 +1056,27 @@ async function loadHistoryPanel() {
                     url: file.url,
                     data: file.data
                 }));
-
+        
                 let imageLinks = "";
                 for (let i = 0; i < uploadedFiles.length; i++) {
                     const file = uploadedFiles[i];
                     imageLinks += `<up-img>${file.url}</up-img>\n`;
                 }
-
+        
                 if (msg) {
                     msg = imageLinks + msg;
                 } else {
-                    msg = imageLinks.trim(); 
+                    msg = imageLinks.trim();
                 }
-
             }
         
-
-
             if (!currentChatId) {
                 try {
                     const bodyData = { message: msg };
                     if (document.getElementById('inco-btn').classList.contains('expanded')) {
-                        bodyData.is_private = 1; 
+                        bodyData.is_private = 1;
                     }
-
+        
                     const res = await fetch('/chats', {
                         method: 'POST',
                         headers: {
@@ -1087,9 +1084,9 @@ async function loadHistoryPanel() {
                         },
                         body: JSON.stringify(bodyData),
                     });
-
+        
                     if (!res.ok) throw new Error(`Server error: ${res.status}`);
-
+        
                     const newChat = await res.json();
                     currentChatId = newChat.id;
                     activeChatId = newChat.id;
@@ -1100,29 +1097,27 @@ async function loadHistoryPanel() {
                     return;
                 }
             }
-
-
+        
             const requestBody = {
                 message: msg,
                 chat_id: currentChatId
             };
         
             // Add files if any
-            
             console.log(requestBody.files);
-
+        
             input.value = '';
             autoResize();
             clearRecommendations();
             clearUploadedFiles();
-
+        
             appendMessageToChat(msg, 'user');
             if (uploadedFiles.length > 0) {
                 // You can add visual indication of files in the message
             }
-
+        
             const isPrivate = document.getElementById('inco-btn').classList.contains('expanded');
-            if(isPrivate){
+            if (isPrivate) {
                 is_private = 1;
                 console.log(is_private);
             }
@@ -1136,23 +1131,147 @@ async function loadHistoryPanel() {
             let statusText = 'typing...';
             if (isSearching && selectedSearchOption === 'web') {
                 endpoint = '/search-chat';
-                statusText = 'searching...';
+                statusText = 'Searching...';
             } else if (isSearching && selectedSearchOption === 'research') {
                 endpoint = '/research-chat';
-                statusText = 'researching...';
+                statusText = 'Researching...';
             } else if (isReasoning) {
                 endpoint = '/reasonchat';
-                statusText = 'reasoning...';
+                statusText = 'Thinking...';
             } else if (isSystem) {
                 endpoint = '/exec-chat';
-                statusText = 'executing...';
-            }
-            else if (isImgGen) {
+                statusText = 'Analyzing...';
+            } else if (isImgGen) {
                 endpoint = '/generate-image';
                 statusText = 'Generating...';
             }
         
+            // --- Status sequences (expanded realistic sequences) ---
+            const statusSequences = {
+                '/search-chat': [
+                    'Searching...',
+                    'Scanning results...',
+                    'Analyzing relevance...',
+                    'Filtering duplicates...',
+                    'Checking sources...',
+                    'Almost done...'
+                ],
+                '/research-chat': [
+                    'Researching...',
+                    'Gathering references...',
+                    'Fetching papers and articles...',
+                    'Validating facts...',
+                    'Summarizing findings...',
+                    'Compiling report...',
+                    'Almost done...'
+                ],
+                '/reasonchat': [
+                    'Thinking...',
+                    'Evaluating options...',
+                    'Weighing pros and cons...',
+                    'Checking assumptions...',
+                    'Testing edge cases...',
+                    'Forming conclusion...',
+                    'Finalizing answer...'
+                ],
+                '/exec-chat': [
+                    'Analyzing...',
+                    'Executing code...',
+                    'Parsing input...',
+                    'Running checks...',
+                    'Compiling results...',
+                    'Finalizing output...',
+                    'Almost done...'
+                ],
+        
+                '/generate-image': [
+                    'Generating...',
+                    'Processing image...',
+                    'Refining composition...',
+                    'Enhancing details...',
+                    'Applying styles/effects...',
+                    'Optimizing resolution...',
+                    'Final touches...'
+                ],
+                '/chat': [
+                    'Typing...',
+                ]
+            };
+        
+            // Append placeholder bot bubble (keeps existing inner HTML structure so animations keep working)
             appendMessageToChat('', 'bot', statusText);
+        
+            // Find the last bot bubble we just appended and mark it so we can safely remove it on error
+            const botBubbles = chatContainer.querySelectorAll('.bubble-bot');
+            const statusBubble = botBubbles[botBubbles.length - 1];
+            if (statusBubble) {
+                statusBubble.dataset.statusBubble = '1';
+            }
+        
+            // Grab the element inside the bubble that contains the animated text (.gradient-text) and update only that
+            const statusTextEl = statusBubble ? statusBubble.querySelector('.gradient-text') : null;
+        
+            // Status cycle control variables
+            let statusTimerId = null;
+            let statusStopped = false;
+        
+            function stopStatusCycle() {
+                statusStopped = true;
+                if (statusTimerId) {
+                    clearTimeout(statusTimerId);
+                    statusTimerId = null;
+                }
+            }
+        
+            // Modified startStatusCycle: advance *once* through sequence and stop at the final item.
+            function startStatusCycle(textElement, seq, initial) {
+                if (!textElement || !Array.isArray(seq) || seq.length === 0) return;
+        
+                // Show initial or first sequence item
+                textElement.innerHTML = initial || seq[0];
+        
+                // Determine index of the currently displayed item in the sequence
+                let i = seq.indexOf(textElement.innerHTML);
+                if (i === -1) {
+                    i = 0;
+                }
+        
+                // If already at the last item, don't schedule any further updates.
+                if (i >= seq.length - 1) {
+                    return;
+                }
+        
+                function step() {
+                    if (statusStopped) return;
+        
+                    // If already at final element, stop (do not loop)
+                    if (i >= seq.length - 1) {
+                        statusTimerId = null;
+                        return;
+                    }
+        
+                    i++;
+                    textElement.innerHTML = seq[i];
+        
+                    // If we've reached the last item, don't schedule another step
+                    if (i >= seq.length - 1) {
+                        statusTimerId = null;
+                        return;
+                    }
+        
+                    // otherwise schedule next change (random delay)
+                    const delay = 1200 + Math.floor(Math.random() * 1800);
+                    statusTimerId = setTimeout(step, delay);
+                }
+        
+                // first change slightly delayed so it doesn't seem instant
+                const firstDelay = 1000 + Math.floor(Math.random() * 800);
+                statusTimerId = setTimeout(step, firstDelay);
+            }
+        
+            // Start cycling realistic status messages (fall back to '/chat' sequence if endpoint missing)
+            const seq = statusSequences[endpoint] || statusSequences['/chat'];
+            startStatusCycle(statusTextEl, seq, statusText);
         
             try {
                 const res = await fetch(endpoint, {
@@ -1181,6 +1300,12 @@ async function loadHistoryPanel() {
                             const [eLine, dLine] = part.split('\n');
                             const eventType = eLine.replace('event: ', '').trim();
                             if (eventType === 'bot') {
+                                // stop fake status cycle when the first real bot chunk arrives
+                                stopStatusCycle();
+                                if (statusBubble) {
+                                    // unflag the bubble so we won't accidentally remove it later
+                                    delete statusBubble.dataset.statusBubble;
+                                }
                                 try {
                                     const chunk = JSON.parse(dLine.replace('data: ', ''));
                                     updateBotChunk(chunk);
@@ -1191,27 +1316,31 @@ async function loadHistoryPanel() {
                         }
                     }
                 }
-
+        
+                // ensure cycle is stopped when streaming finishes (in case there were no 'bot' events)
+                stopStatusCycle();
+        
                 finalizeStreamingMessage();
-                
+        
                 // Only reload chats after successful message exchange
                 if (activeChatId && !document.querySelector(`.chat-list-item[data-chat-id="${activeChatId}"]`)) {
                     await loadHistoryPanel();
                 }
-                
+        
             } catch (error) {
                 console.error("Failed to send message:", error);
-                // Remove the bot status message on error
-                const botBubbles = chatContainer.querySelectorAll('.bubble-bot');
-                const lastBotBubble = botBubbles[botBubbles.length - 1];
-                if (lastBotBubble && lastBotBubble.textContent.includes(statusText)) {
-                    lastBotBubble.remove();
-                }
+        
+                // stop cycling and remove the placeholder status bubble we appended earlier (safely)
+                stopStatusCycle();
+                const placeholder = chatContainer.querySelector('.bubble-bot[data-status-bubble="1"]');
+                if (placeholder) placeholder.remove();
+        
                 alert("Failed to send message. Please try again.");
             }
-
-
         }
+        
+
+        
         function clearUploadedFiles() {
             uploadedFiles = [];
             uploadPreviewContainer.innerHTML = '';

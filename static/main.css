@@ -409,11 +409,6 @@
       white-space: normal; 
   }
 
-
-  .thinking-block.streaming {
-    border-color: #c0c0c0;
-    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1);
-  }
   
   .thinking-header {
     align-items: center;
@@ -649,10 +644,7 @@
     border-color: #334155;
   }
   
-  body.dark .thinking-block.streaming {
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.1);
-  }
+
   
   body.dark .thinking-header {
     background: #0f172a;
