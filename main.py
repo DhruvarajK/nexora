@@ -60,7 +60,7 @@ def get_next_client():
 
 
 hf_keys = [os.getenv(f"hf_key{i}") for i in range(1, 5) if os.getenv(f"hf_key{i}")]
-HF_clients = [ InferenceClient(provider="hf-inference", api_key=key) for key in api_keys ]
+HF_clients = [ InferenceClient(provider="hf-inference", api_key=key) for key in hf_keys ]
 hf_client_index = 0
 
 def get_next_hf_client():
@@ -467,10 +467,6 @@ def upload_bytes_to_supabase(file_bytes: bytes, extension: str = ".png", bucket_
     return public_url
 
 def generate_and_upload_sync(prompt: str, user_id: int, model: str = "black-forest-labs/FLUX.1-schnell") -> str:
-    """
-    Generate image via Hugging Face InferenceClient, upload to Supabase,
-    insert record into images table, and return the Supabase public URL.
-    """
     print("generate_and_upload_sync: called, user_id type:", type(user_id), "value:", user_id)
 
     # 1) Generate image using huggingface InferenceClient
