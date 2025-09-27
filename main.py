@@ -97,12 +97,15 @@ CREATE TABLE IF NOT EXISTS chats (
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS images (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
     image_url TEXT NOT NULL,
     prompt TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id)
 )
 """)
 conn.commit()
+
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS history (
@@ -429,6 +432,7 @@ def parse_message_with_images(message: str):
 
 
 def generate_and_upload_sync(prompt: str) -> str:
+    user_id = get_current_user_id()
     input_data = {
         "prompt": prompt
     }
@@ -441,9 +445,10 @@ def generate_and_upload_sync(prompt: str) -> str:
     try:
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO images (image_url, prompt) VALUES (?, ?)",
-            (paren_bracket_variant, prompt)
+        "INSERT INTO images (user_id, image_url, prompt) VALUES (?, ?, ?)",
+            (user_id, paren_bracket_variant, prompt)
         )
+
         conn.commit()
     except Exception as e:
         print("generate_and_upload_sync: DB insert/commit failed (continuing).",e)
@@ -493,10 +498,30 @@ async def generate_image_stream(req: ChatRequest):
 
 @app.get("/images")
 def list_images(limit: int = 50):
+    user_id = get_current_user_id()
+    
+    # Ensure limit is reasonable
+    limit = min(limit, 100)
+    
+    # Use row_factory to get dictionary results
+    conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    cur.execute("SELECT id, image_url, prompt, created_at FROM images ORDER BY created_at DESC LIMIT ?", (limit,))
-    rows = [dict(r) for r in cur.fetchall()]
+    
+    cur.execute(
+        """
+        SELECT id, image_url, prompt, created_at 
+        FROM images 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT ?
+        """,
+        (user_id, limit)
+    )
+    
+    rows = [dict(row) for row in cur.fetchall()]
+    
     return {"count": len(rows), "images": rows}
+
 
 @app.post("/chat")
 async def chat_stream(req: ChatRequest):
