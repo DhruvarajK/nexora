@@ -15,6 +15,10 @@
       box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
       color: #0f172a;
     }
+    .chat-menu {
+      background: #f9f9f9;
+      border: 1px solid #d5d5d5;
+  }
 
     .images-modal__panel,.image-card{
       background: #ffffff;
@@ -107,10 +111,9 @@
       background: #fff;
       color: #111827;
       border: 1px solid #ddd;
-      box-shadow: 0 0 6px rgba(233,233,233,0.82);
     }
-    .modal-content input { background: #fff; color: #111827; border: 1px solid #ddd; }
-    #confirmRename, #confirmDelete { background: #007bff; color: #fff; }
+    .modal-content input { background: #fff; color: #111827; }
+    #confirmRename, #confirmDelete { background: #000000; color: #fff; }
     #cancelRename, #cancelDelete { background: #f8f9fa; color: #333; }
   
     /* chat list */
@@ -450,13 +453,13 @@
     /* modal */
     .custom-modal { background: rgba(0, 0, 0, 0.6); }
     .modal-content {
-      background: #0f1724;
+      background: #0e0e0e;
       color: #e6eef8;
       border: 1px solid #474747;
       box-shadow: 0 6px 20px rgba(0,0,0,0.6);
     }
-    .modal-content input { background: #0b1220; color: #f0f0f0; border: 1px solid #474747; }
-    #confirmRename, #confirmDelete { background: #4a5568; color: #fff; }
+    .modal-content input { background: #0b1220; color: #f0f0f0; }
+    #confirmRename, #confirmDelete { background: #751a23; color: #fff; }
     #cancelRename, #cancelDelete { background: #22303b; color: #f0f0f0; }
   
     /* chat list */
@@ -486,6 +489,11 @@
         border: 1px solid #474747;
         background-color: #000000;
     }
+
+    .chat-menu {
+      background: #181818;
+      border: 1px solid #555555;
+  }
 
   
     /* misc small items */

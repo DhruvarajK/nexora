@@ -47,22 +47,7 @@
         </div>
         
         <div id="chat-box">
-            <div id="images-modal" class="images-modal" aria-hidden="true" role="dialog" aria-labelledby="images-modal-title">
-                <div class="images-modal__panel" role="document">
-                  <button id="close-modal-btn" class="images-modal__close" aria-label="Close"><span class="desk-close">&times;</span><span class="mob-clos"><svg width="15px" height="15px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M11.7071 4.29289C12.0976 4.68342 12.0976 5.31658 11.7071 5.70711L6.41421 11H20C20.5523 11 21 11.4477 21 12C21 12.5523 20.5523 13 20 13H6.41421L11.7071 18.2929C12.0976 18.6834 12.0976 19.3166 11.7071 19.7071C11.3166 20.0976 10.6834 20.0976 10.2929 19.7071L3.29289 12.7071C3.10536 12.5196 3 12.2652 3 12C3 11.7348 3.10536 11.4804 3.29289 11.2929L10.2929 4.29289C10.6834 3.90237 11.3166 3.90237 11.7071 4.29289Z" fill="currentColor"/>
-                    </svg></span></button>
-                  <h2 id="images-modal-title" class="images-modal__title">Gallery</h2>
-              
-                  <div id="loading-global" class="images-modal__global-loading" aria-live="polite">
-                    <div class="spinner-img"></div>
-                  </div>
-              
-                  <div id="no-images-msg" class="images-modal__noimages" hidden>No images found.</div>
-              
-                  <div id="images-grid" class="images-grid" aria-live="polite"></div>
-                </div>
-              </div>
+            
             <div class="mob-header">
                 <div class="nex-l"><svg class="nav-icon" width="27" height="27" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 7L10 0H8L2 7V9H7L6 16H8L14 9L14 7H9Z" fill="currentColor"></path></svg>Nex</div>
                 <div class="new-ch-tog" onclick="createNewChat"><svg class="new-ch-tog-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 4V4C8.13623 4 7.20435 4 6.46927 4.30448C5.48915 4.71046 4.71046 5.48915 4.30448 6.46927C4 7.20435 4 8.13623 4 10V13.6C4 15.8402 4 16.9603 4.43597 17.816C4.81947 18.5686 5.43139 19.1805 6.18404 19.564C7.03968 20 8.15979 20 10.4 20H14C15.8638 20 16.7956 20 17.5307 19.6955C18.5108 19.2895 19.2895 18.5108 19.6955 17.5307C20 16.7956 20 15.8638 20 14V14" stroke="currentColor" stroke-linecap="square"></path><path d="M12.4393 14.5607L19.5 7.5C20.3284 6.67157 20.3284 5.32843 19.5 4.5C18.6716 3.67157 17.3284 3.67157 16.5 4.5L9.43934 11.5607C9.15804 11.842 9 12.2235 9 12.6213V15H11.3787C11.7765 15 12.158 14.842 12.4393 14.5607Z" stroke="currentColor" stroke-linecap="square"></path></svg></div>
@@ -174,7 +159,24 @@
     </div>
 
 
-    
+    <div id="images-modal" class="images-modal" aria-hidden="true" role="dialog" aria-labelledby="images-modal-title">
+        <div class="images-modal__panel" role="document">
+          <div class="img-model-head">
+            <div style="display: flex;"><button id="close-modal-btn" class="images-modal__close" aria-label="Close"><span class="desk-close">&times;</span><span class="mob-clos"><svg width="15px" height="15px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M11.7071 4.29289C12.0976 4.68342 12.0976 5.31658 11.7071 5.70711L6.41421 11H20C20.5523 11 21 11.4477 21 12C21 12.5523 20.5523 13 20 13H6.41421L11.7071 18.2929C12.0976 18.6834 12.0976 19.3166 11.7071 19.7071C11.3166 20.0976 10.6834 20.0976 10.2929 19.7071L3.29289 12.7071C3.10536 12.5196 3 12.2652 3 12C3 11.7348 3.10536 11.4804 3.29289 11.2929L10.2929 4.29289C10.6834 3.90237 11.3166 3.90237 11.7071 4.29289Z" fill="currentColor"/>
+                </svg></span></button></div>
+              <div><h2 id="images-modal-title" class="images-modal__title">Gallery</h2></div>
+          </div>
+      
+          <div id="loading-global" class="images-modal__global-loading" aria-live="polite">
+            <div class="spinner-img"></div>
+          </div>
+      
+          <div id="no-images-msg" class="images-modal__noimages" hidden>No images found.</div>
+      
+          <div id="images-grid" class="images-grid" aria-live="polite"></div>
+        </div>
+    </div>
     
     <Script src="/static/icons.js"></Script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>

@@ -1,6 +1,5 @@
 
 import base64
-from io import BytesIO
 import mimetypes
 import os
 from pathlib import Path
@@ -18,8 +17,6 @@ import httpx
 from pydantic import BaseModel
 import replicate
 from scraper import get_content_from_links,SYSTEM_PROMPT,LLM_MODEL, get_search_links, truncate_prompt_text
-import os
-from io import BytesIO
 import shutil
 import time
 import logging
@@ -32,6 +29,15 @@ from starlette.middleware.sessions import SessionMiddleware
 import os
 import asyncio
 from dotenv import load_dotenv
+import io
+import requests
+from pathlib import Path
+from huggingface_hub import InferenceClient
+from PIL import Image
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -44,29 +50,26 @@ class CodeSnippet(BaseModel):
     filename: str
     code: str
     
-
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 api_keys = [os.getenv(f"key{i}") for i in range(1, 5) if os.getenv(f"key{i}")]
-logger.info(f"Loaded API keys: {api_keys}")
-clients = [
-    OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=key
-    ) for key in api_keys
-]
-logger.info(f"Created {len(clients)} clients")
-
+clients = [OpenAI( base_url="https://openrouter.ai/api/v1",api_key=key ) for key in api_keys]
 client_index = 0
-
 def get_next_client():
     global client_index
     client = clients[client_index]
     client_index = (client_index + 1) % len(clients)
     return client
+
+
+hf_keys = [os.getenv(f"hf_key{i}") for i in range(1, 5) if os.getenv(f"hf_key{i}")]
+HF_clients = [ InferenceClient(provider="hf-inference", api_key=key) for key in api_keys ]
+hf_client_index = 0
+
+def get_next_hf_client():
+    global hf_client_index
+    client = HF_clients[hf_client_index]
+    hf_client_index = (hf_client_index + 1) % len(HF_clients)
+    return client
+
 cursor.execute("PRAGMA foreign_keys = ON;")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -191,10 +194,13 @@ def get_current_user_id(request: Request) -> Optional[int]:
     if not user_id:
         return None
 
-    cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
-    row = cursor.fetchone()
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+    row = cur.fetchone()
+
     if row:
         return row["id"] if isinstance(row, sqlite3.Row) else row[0]
+
     # invalid session (user deleted) -> clean up session and return None
     request.session.pop("user_id", None)
     return None
@@ -431,13 +437,9 @@ def parse_message_with_images(message: str):
     return content if content else [{"type": "text", "text": message.strip()}]
 
 
-import io
 
-import requests
-from pathlib import Path
-from huggingface_hub import InferenceClient
-from PIL import Image
-hf_client = InferenceClient(provider="hf-inference", api_key=os.environ.get("HF_TOKEN"))
+
+hf_client = get_next_hf_client()
 
 def upload_bytes_to_supabase(file_bytes: bytes, extension: str = ".png", bucket_name="nexora-ai"):
     """Upload raw bytes to Supabase storage and return the public URL."""
@@ -1176,8 +1178,7 @@ async def run_code(req: RunCodeRequest):
                 except OSError as e:
                     print(f"Warning: Could not delete Java class file {class_file_path}: {e}")
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+
 
 
 LOGO_FILE_PATH = os.path.join("assets", "nex.jpeg")
@@ -1288,7 +1289,7 @@ async def export_pdf(data: dict):
             logger.info(f"PDF file read, size: {len(pdf_content)} bytes")
             
             return StreamingResponse(
-                BytesIO(pdf_content),
+                io.BytesIO(pdf_content),
                 media_type="application/pdf",
                 headers={"Content-Disposition": f"attachment; filename=chat_{chat_id}.pdf"}
             )

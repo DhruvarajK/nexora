@@ -728,7 +728,6 @@
   border-radius: 32px;
   width: 90%;
   max-width: 407px;
-  box-shadow: 0 0 6px 0px rgb(233 233 233 / 82%);
   font-size: 14px;
   font-family: monospace;
 }
@@ -798,33 +797,17 @@ body.light .modal-content p {
     color: #333;
 }
 
-body:not(.light) .modal-content {
-    background: #333;
-    border: 1px solid #555;
-    color: #fff;
+ .modal-content {
+  background: #ffffff;
+  color: #000000;
 }
 
-body:not(.light) .modal-content input {
-    background: #444;
-    color: #fff;
-    border: 1px solid #666;
+.modal-content input {
+  background: white;
+  color: #000000;
+  border: none;
 }
 
-body:not(.light) #confirmRename,
-body:not(.light) #confirmDelete {
-    background: #4a4a4f;
-}
-
-body:not(.light) #cancelRename,
-body:not(.light) #cancelDelete {
-    background: #555;
-    color: #fff;
-}
-
-body:not(.light) #cancelRename:hover,
-body:not(.light) #cancelDelete:hover {
-    background: #666;
-}
 
 #history {
     display: flex;
@@ -1812,27 +1795,30 @@ body:has(#inco-btn.expanded) .bubble-user {
 
 /* Close button */
 .images-modal__close{
-  position: absolute;
-  top: 12px;
-  right: 12px;
   border: none;
   background: transparent;
   font-size: 28px;
   line-height: 1;
   cursor: pointer;
   color: #333;
-  padding: 6px;
 }
 
 /* Title */
 .images-modal__title {
-  margin: 0 0 18px 0;
   text-align: left;
   color: #111827;
   font-size: 20px;
   font-weight: 600;
   padding-left: 0;
 }
+.img-model-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
 /* Global loading */
 .images-modal__global-loading{
   display: flex;
@@ -1961,11 +1947,19 @@ display: none;
 @media (max-width: 1140px){
   :root { --thumb-height: 140px; --thumb-width-min: 140px; }
   .images-modal__panel { padding: 16px; border-radius: 0;}
-  .images-modal__title { font-size: 18px; padding-left: 27px; }
+  .images-modal__title { font-size: 18px; }
   .images-modal__close{ left: 9px;}
   span.desk-close {display: none;}
   span.mob-clos {display: flex;}
   .new-img-btn {padding: 12px;margin: 7px;}
+
+  .img-model-head {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+    flex-direction: row;
+    align-items: center;
+}
 
 #close-modal-btn svg {
   width: 22px;
