@@ -2688,160 +2688,401 @@ async function loadHistoryPanel() {
 
     </script>
     <script>
-// Updated script (no inline styles). Place after DOM or in a module.
-document.addEventListener('DOMContentLoaded', function() {
-    const imagesModal = document.getElementById('images-modal');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-    const loadingGlobal = document.getElementById('loading-global');
-    const noImagesMsg = document.getElementById('no-images-msg');
-    const imagesGrid = document.getElementById('images-grid');
-  
-    function openModal() {
-      if (imagesModal) {
-        imagesModal.style.display = 'flex';
-        imagesModal.setAttribute('aria-hidden', 'false');
-        if (loadingGlobal) loadingGlobal.style.display = 'flex';
-        if (noImagesMsg) noImagesMsg.hidden = true;
-        if (imagesGrid) imagesGrid.innerHTML = '';
-      }
-    }
-  
-    function closeModal() {
-      if (imagesModal) {
-        imagesModal.style.display = 'none';
-        imagesModal.setAttribute('aria-hidden', 'true');
-      }
-    }
-  
-    // Close by clicking backdrop
-    if (imagesModal) {
-      imagesModal.addEventListener('click', (ev) => {
-        if (ev.target === imagesModal) closeModal();
-      });
-    }
-  
-    // Close by close button
-    if (closeModalBtn) {
-      closeModalBtn.addEventListener('click', closeModal);
-    }
-  
-    // Close by Escape key
-    document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape' && imagesModal && imagesModal.style.display === 'flex') {
-        closeModal();
-      }
-    });
-  
-    // Helper to create elements with classes
-    const el = (tag, cls = '', attrs = {}) => {
-      const e = document.createElement(tag);
-      if (cls) e.className = cls;
-      Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
-      return e;
-    };
-  
-    // Load images from server and render
-    async function fetchAndRender(limit = 50) {
-      try {
-        const resp = await fetch(`/images?limit=${encodeURIComponent(limit)}`, { cache: 'no-store' });
-        if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
-        const data = await resp.json();
-  
-        if (loadingGlobal) loadingGlobal.style.display = 'none';
-  
-        if (!data || !Array.isArray(data.images) || data.count === 0) {
-          if (noImagesMsg) noImagesMsg.hidden = false;
-          return;
-        }
-  
-        // Build grid
-        if (imagesGrid) {
-          imagesGrid.innerHTML = '';
-          imagesGrid.style.display = 'grid';
-        }
-  
-        data.images.forEach((image) => {
-          const card = el('div', 'image-card');
-  
-          // Thumb container
-          const thumb = el('div', 'image-thumb');
-  
-          // Per-image spinner overlay
-          const spinnerWrap = el('div', 'thumb-spinner');
-          const spinner = el('div', 'spinner');
-          spinnerWrap.appendChild(spinner);
-  
-          // img element
-          const img = el('img', 'thumb-img', { alt: image.prompt || 'Generated image', loading: 'lazy' });
-          // Set src AFTER hooking load/error handlers to avoid missing events
-          img.dataset.src = image.image_url || '';
-  
-          // Caption
-          const prompt = el('p', 'prompt');
-          prompt.textContent = image.prompt || '—';
-  
-          const date = el('p', 'date');
-          // defensive parse
-          const created = image.created_at ? new Date(image.created_at) : null;
-          date.textContent = created && !isNaN(created) ? created.toLocaleString() : '';
-  
-          // Append structure
-          thumb.appendChild(img);
-          thumb.appendChild(spinnerWrap);
-          card.appendChild(thumb);
-          card.appendChild(prompt);
-          card.appendChild(date);
-          if (imagesGrid) imagesGrid.appendChild(card);
-  
-          // Image loading handlers
-          let loadHandled = false;
-          function onLoad() {
-            if (loadHandled) return;
-            loadHandled = true;
-            img.classList.add('loaded');
-            if (spinnerWrap && spinnerWrap.parentNode) spinnerWrap.parentNode.removeChild(spinnerWrap);
+        document.addEventListener('DOMContentLoaded', function() {
+          // --------------------------
+          // Lightbox HTML injection
+          // --------------------------
+          const lightboxHtml = `
+          <div id="custom-lightbox" class="custom-lightbox" hidden aria-hidden="true" role="dialog" aria-modal="true">
+            <div class="clb-overlay" data-action="close" tabindex="-1"></div>
+            <div class="clb-panel" role="document">
+              <button class="clb-close" data-action="close" aria-label="Close (Esc)">✕</button>
+              <div class="clb-stage">
+                <button class="clb-nav clb-prev" data-action="prev" aria-label="Previous image">‹</button>
+                <div class="clb-mediawrap">
+                  <div class="clb-spinner" aria-hidden="true"></div>
+                  <img class="clb-image" alt="">
+                </div>
+                <button class="clb-nav clb-next" data-action="next" aria-label="Next image">›</button>
+              </div>
+              <div class="clb-info">
+                <div class="clb-caption" aria-live="polite"></div>
+                <div class="clb-actions">
+                  <a class="clb-download" role="button" href="#" download aria-label="Download image">Download</a>
+                  <a class="clb-open" target="_blank" rel="noopener noreferrer" aria-label="Open in new tab">Open</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          `;
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(lightboxHtml, 'text/html');
+          const lightboxNode = doc.body.firstElementChild;
+          document.body.appendChild(lightboxNode);
+        
+          // --------------------------
+          // Elements & state
+          // --------------------------
+          const LB = document.getElementById('custom-lightbox');
+          const overlay = LB.querySelector('.clb-overlay');
+          const panel = LB.querySelector('.clb-panel');
+          const imgEl = LB.querySelector('.clb-image');
+          const spinner = LB.querySelector('.clb-spinner');
+          const captionEl = LB.querySelector('.clb-caption');
+          const downloadBtn = LB.querySelector('.clb-download');
+          const openBtn = LB.querySelector('.clb-open');
+          const prevBtn = LB.querySelector('.clb-prev');
+          const nextBtn = LB.querySelector('.clb-next');
+          const closeBtns = LB.querySelectorAll('[data-action="close"]');
+          let images = []; // { src, alt, el }
+          let currentIndex = 0;
+          let lastActive = null;
+        
+          // reuse your basename util
+          function basenameFromUrl(url) {
+            try {
+              const u = new URL(url, location.href);
+              return u.pathname.split('/').pop() || u.hostname;
+            } catch (e) {
+              return url;
+            }
           }
-          function onError() {
-            if (loadHandled) return;
-            loadHandled = true;
-            if (spinnerWrap && spinnerWrap.parentNode) spinnerWrap.parentNode.removeChild(spinnerWrap);
-            // show fallback (small broken icon)
-            img.src = '';
-            img.alt = 'Unable to load image';
-            img.style.background = 'repeating-linear-gradient(45deg, #f8d7da, #f1b0b7 10px)';
-            img.style.opacity = '1';
+          function isImageUrl(url) {
+            return !!url && /\.(png|jpe?g|gif|svg|webp)(\?.*)?(#.*)?$/i.test(url);
           }
-  
-          img.addEventListener('load', onLoad);
-          img.addEventListener('error', onError);
-  
-          // Start loading image (set src) — this keeps layout stable because container has fixed height
-          // Small delay to allow DOM paint of spinner before heavy downloads start
-          requestAnimationFrame(() => {
-            if (img.dataset.src) img.src = img.dataset.src;
+        
+          // --------------------------
+          // Collect images from grid
+          // --------------------------
+          function collectImages() {
+            // prefer the images in the grid rendered by your fetchAndRender
+            const grid = document.getElementById('images-grid');
+            if (!grid) { images = []; return; }
+            images = Array.from(grid.querySelectorAll('img.thumb-img'))
+              .filter(img => (img.dataset?.src || img.src) && isImageUrl(img.dataset?.src || img.src))
+              .map(img => ({ src: img.dataset?.src || img.src, alt: img.alt || '', el: img }));
+          }
+        
+          // --------------------------
+          // Spinner helper
+          // --------------------------
+          function showSpinner(show) {
+            spinner.style.display = show ? 'block' : 'none';
+          }
+        
+          // --------------------------
+          // Download logic (fetch blob -> fallback open)
+          // --------------------------
+          async function attemptDownload(url, filename, el) {
+            try {
+              if (el) el.classList.add('downloading');
+              const res = await fetch(url, { mode: 'cors' });
+              if (!res.ok) throw new Error('Network error');
+              const blob = await res.blob();
+              const blobUrl = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = blobUrl;
+              a.download = filename || basenameFromUrl(url);
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+            } catch (err) {
+              // fallback: open in new tab (user can save)
+              window.open(url, '_blank', 'noopener');
+            } finally {
+              if (el) el.classList.remove('downloading');
+            }
+          }
+        
+          // --------------------------
+          // Show / hide lightbox
+          // --------------------------
+          function updateNavVisibility() {
+            prevBtn.style.display = images.length > 1 ? '' : 'none';
+            nextBtn.style.display = images.length > 1 ? '' : 'none';
+          }
+        
+          function showLightbox(index) {
+            if (!images.length) return;
+            currentIndex = (index + images.length) % images.length;
+            const item = images[currentIndex];
+            lastActive = document.activeElement;
+        
+            LB.hidden = false;
+            LB.setAttribute('aria-hidden', 'false');
+            document.documentElement.style.overflow = 'hidden'; // prevent page scroll while open
+        
+            imgEl.classList.remove('loaded', 'error');
+            imgEl.alt = item.alt || '';
+            captionEl.textContent = item.alt || basenameFromUrl(item.src);
+        
+            // open/download hrefs
+            openBtn.href = item.src;
+            downloadBtn.href = item.src;
+            downloadBtn.dataset.src = item.src;
+            downloadBtn.download = basenameFromUrl(item.src);
+        
+            // if already loaded in this imgEl
+            if (imgEl.src === item.src && imgEl.complete && imgEl.naturalWidth > 0) {
+              showSpinner(false);
+              imgEl.classList.add('loaded');
+            } else {
+              showSpinner(true);
+              imgEl.src = item.src;
+            }
+        
+            // focus close for accessibility
+            setTimeout(() => {
+              closeBtns[0]?.focus();
+            }, 50);
+        
+            updateNavVisibility();
+          }
+        
+          function hideLightbox() {
+            LB.hidden = true;
+            LB.setAttribute('aria-hidden', 'true');
+            document.documentElement.style.overflow = '';
+            imgEl.src = '';
+            if (lastActive && lastActive.focus) lastActive.focus();
+          }
+        
+          // --------------------------
+          // Navigation helpers
+          // --------------------------
+          function goNext() {
+            if (!images.length) return;
+            showLightbox((currentIndex + 1) % images.length);
+          }
+          function goPrev() {
+            if (!images.length) return;
+            showLightbox((currentIndex - 1 + images.length) % images.length);
+          }
+        
+          // --------------------------
+          // Image load/error events
+          // --------------------------
+          imgEl.addEventListener('load', () => {
+            showSpinner(false);
+            imgEl.classList.add('loaded');
           });
+          imgEl.addEventListener('error', () => {
+            showSpinner(false);
+            imgEl.classList.add('error');
+            captionEl.textContent = 'Failed to load image';
+          });
+        
+          // --------------------------
+          // Delegate clicks (open, nav, download, close)
+          // --------------------------
+          document.addEventListener('click', function (e) {
+            // Thumbnail click inside the grid -> open lightbox
+            const thumb = e.target.closest && e.target.closest('img.thumb-img');
+            if (thumb) {
+              collectImages();
+              const idx = images.findIndex(i => i.el === thumb || i.src === (thumb.dataset?.src || thumb.src));
+              if (idx >= 0) {
+                showLightbox(idx);
+              } else {
+                // open single
+                images = [{ src: thumb.dataset?.src || thumb.src, alt: thumb.alt || '', el: thumb }];
+                showLightbox(0);
+              }
+              e.preventDefault();
+              return;
+            }
+        
+            // close buttons / overlay
+            const closeTarget = e.target.closest && e.target.closest('[data-action="close"]');
+            if (closeTarget) {
+              hideLightbox();
+              return;
+            }
+        
+            // nav targets
+            const navTarget = e.target.closest && e.target.closest('[data-action="next"], [data-action="prev"]');
+            if (navTarget) {
+              if (navTarget.dataset.action === 'next') goNext();
+              else if (navTarget.dataset.action === 'prev') goPrev();
+              return;
+            }
+        
+            // download click inside lightbox
+            if (e.target.closest && e.target.closest('.clb-download')) {
+              e.preventDefault();
+              const btn = e.target.closest('.clb-download');
+              const url = btn.dataset.src || btn.href;
+              const filename = btn.download || basenameFromUrl(url);
+              attemptDownload(url, filename, btn);
+              return;
+            }
+          }, false);
+        
+          // ---------- keyboard support ----------
+          document.addEventListener('keydown', function (e) {
+            if (LB.hidden || LB.getAttribute('aria-hidden') === 'true') return;
+            if (e.key === 'Escape') {
+              hideLightbox();
+            } else if (e.key === 'ArrowRight') {
+              goNext();
+            } else if (e.key === 'ArrowLeft') {
+              goPrev();
+            }
+          });
+        
+          // close overlay click
+          LB.addEventListener('click', (e) => {
+            if (e.target === overlay) hideLightbox();
+          });
+        
+          // initial collect
+          collectImages();
+        
+          // expose small API
+          window.CustomImageLightbox = {
+            open: (src) => {
+              collectImages();
+              const idx = images.findIndex(i => i.src === src);
+              if (idx >= 0) showLightbox(idx);
+              else {
+                images = [{ src, alt: '', el: null }];
+                showLightbox(0);
+              }
+            },
+            refresh: collectImages
+          };
+        
+          // --------------------------
+          // === Your existing modal/grid script merged below ===
+          // --------------------------
+          const imagesModal = document.getElementById('images-modal');
+          const closeModalBtn = document.getElementById('close-modal-btn');
+          const loadingGlobal = document.getElementById('loading-global');
+          const noImagesMsg = document.getElementById('no-images-msg');
+          const imagesGrid = document.getElementById('images-grid');
+        
+          function openModal() {
+            if (imagesModal) {
+              imagesModal.style.display = 'flex';
+              imagesModal.setAttribute('aria-hidden', 'false');
+              if (loadingGlobal) loadingGlobal.style.display = 'flex';
+              if (noImagesMsg) noImagesMsg.hidden = true;
+              if (imagesGrid) imagesGrid.innerHTML = '';
+            }
+          }
+          function closeModal() {
+            if (imagesModal) {
+              imagesModal.style.display = 'none';
+              imagesModal.setAttribute('aria-hidden', 'true');
+            }
+          }
+          if (imagesModal) {
+            imagesModal.addEventListener('click', (ev) => {
+              if (ev.target === imagesModal) closeModal();
+            });
+          }
+          if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+          document.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Escape' && imagesModal && imagesModal.style.display === 'flex') {
+              closeModal();
+            }
+          });
+        
+          const el = (tag, cls = '', attrs = {}) => {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+            return e;
+          };
+        
+          // Fetch and render (keeps your existing behavior; ensures .thumb-img is present)
+          async function fetchAndRender(limit = 50) {
+            try {
+              const resp = await fetch(`/images?limit=${encodeURIComponent(limit)}`, { cache: 'no-store' });
+              if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+              const data = await resp.json();
+              if (loadingGlobal) loadingGlobal.style.display = 'none';
+              if (!data || !Array.isArray(data.images) || data.count === 0) {
+                if (noImagesMsg) noImagesMsg.hidden = false;
+                return;
+              }
+              if (imagesGrid) {
+                imagesGrid.innerHTML = '';
+                imagesGrid.style.display = 'grid';
+              }
+              data.images.forEach((image) => {
+                const card = el('div', 'image-card');
+                const thumb = el('div', 'image-thumb');
+                const spinnerWrap = el('div', 'thumb-spinner');
+                const spinnerEl = el('div', 'spinner');
+                spinnerWrap.appendChild(spinnerEl);
+                const img = el('img', 'thumb-img', { alt: image.prompt || 'Generated image', loading: 'lazy' });
+                img.dataset.src = image.image_url || '';
+                const prompt = el('p', 'prompt');
+                prompt.textContent = image.prompt || '—';
+                const date = el('p', 'date');
+                const created = image.created_at ? new Date(image.created_at) : null;
+                date.textContent = created && !isNaN(created) ? created.toLocaleString() : '';
+                thumb.appendChild(img);
+                thumb.appendChild(spinnerWrap);
+                card.appendChild(thumb);
+                card.appendChild(prompt);
+                card.appendChild(date);
+                if (imagesGrid) imagesGrid.appendChild(card);
+        
+                // Load handlers
+                let loadHandled = false;
+                function onLoad() {
+                  if (loadHandled) return;
+                  loadHandled = true;
+                  img.classList.add('loaded');
+                  if (spinnerWrap && spinnerWrap.parentNode) spinnerWrap.parentNode.removeChild(spinnerWrap);
+                }
+                function onError() {
+                  if (loadHandled) return;
+                  loadHandled = true;
+                  if (spinnerWrap && spinnerWrap.parentNode) spinnerWrap.parentNode.removeChild(spinnerWrap);
+                  img.src = '';
+                  img.alt = 'Unable to load image';
+                  img.style.background = 'repeating-linear-gradient(45deg, #f8d7da, #f1b0b7 10px)';
+                  img.style.opacity = '1';
+                }
+                img.addEventListener('load', onLoad);
+                img.addEventListener('error', onError);
+        
+                // Start loading (small rAF to allow spinner paint)
+                requestAnimationFrame(() => {
+                  if (img.dataset.src) img.src = img.dataset.src;
+                });
+              });
+        
+              // after we've appended thumbnails, refresh the lightbox collection so clicking opens
+              collectImages();
+        
+            } catch (err) {
+              if (loadingGlobal) loadingGlobal.style.display = 'none';
+              if (noImagesMsg) {
+                noImagesMsg.hidden = false;
+                noImagesMsg.textContent = 'Error loading images. Please try again.';
+              }
+              console.error('Error fetching images:', err);
+            }
+          }
+        
+          // open modal button delegation
+          document.addEventListener('click', function(event) {
+            const btn = event.target.closest && event.target.closest('#view-images-btn');
+            if (btn) {
+              openModal();
+              fetchAndRender(50);
+            }
+          });
+        
+          // If you need to open programmatically: window.CustomImageLightbox.open(url);
         });
-  
-      } catch (err) {
-        if (loadingGlobal) loadingGlobal.style.display = 'none';
-        if (noImagesMsg) {
-          noImagesMsg.hidden = false;
-          noImagesMsg.textContent = 'Error loading images. Please try again.';
-        }
-        console.error('Error fetching images:', err);
-      }
-    }
-  
-    // Delegation for dynamic view button click
-    document.addEventListener('click', function(event) {
-      const btn = event.target.closest('#view-images-btn');
-      if (btn) {
-        openModal();
-        fetchAndRender(50);
-      }
-    });
-  });
-    </script>
+        </script>
+        
 <script defer src="/static/search-panel.js"></script>
 <script defer src="/static/internet.js"></script>
 </body>
