@@ -580,7 +580,7 @@ span.streaming-indicator {
 /* Optional: responsive sizing example */
 @media (max-width: 420px) {
   .custom-image-wrapper {
-    width: 99px;
+    width: 135px;
     height: auto;
 }
 }

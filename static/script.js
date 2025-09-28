@@ -341,7 +341,7 @@ text = text.replace(/\[\[!\]\]\((https?:\/\/[^)]+)\)/g, (match, url) => {
       if (mImg) {
         // image: preserve existing wrapper + spinner behavior
         return `
-          <div class="custom-image-wrapper" role="img" aria-label="${safeText}">
+          <div class="custom-image-wrapper" role="img" aria-label="${safeText}" style="width: 230px;" > 
             <div class="custom-image-spinner" aria-hidden="true"></div>
             <img
               class="custom-image-class"
