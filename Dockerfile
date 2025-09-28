@@ -13,6 +13,7 @@ RUN apt-get update -o Acquire::Retries=3 -o Acquire::ForceIPv4=true && \
       pandoc \
       texlive-latex-recommended \
       texlive-fonts-recommended \
+      texlive-fonts-extra \
       python3 \
       python3-pip && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
