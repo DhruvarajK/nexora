@@ -37,3 +37,4 @@ python-multipart
 ddgs
 qrcode[pil]
 huggingface-hub
+pyzbar

@@ -327,6 +327,7 @@ EXC_SYS = {
 }
 
 def executer_v3(prompt : str):
+    backup_directory_contents(INPUT_DIR, INPUT_BACKUP_DIR)
     img_urls, clean_prompt = extract_upimg_links_and_text(prompt)
     if img_urls:
         download_files_to_input(img_urls, INPUT_DIR)

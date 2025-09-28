@@ -512,16 +512,21 @@ span.streaming-indicator {
 }
 
 /* Size: change --image-size to control the square size globally or per-wrapper */
-.custom-image-wrapper {
-  --image-size: 250px;            /* default square size, adjust as needed */
-  width: auto;
-  height: var(--image-size);
+.custom-image-wrapper {      
+  width: 150px;
+  height: auto;
   position: relative;
   overflow: hidden;
-  display: inline-block;
   vertical-align: middle;
-  background: #f4f4f4;            /* neutral bg while loading */
-  border-radius: 25px;             /* optional rounded corners */
+  background: #f4f4f4;         
+  border-radius: 25px;     
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  max-width: 400px;
+  margin: 5px 0px 5px 5px;
+  white-space: normal;        
 }
 
 /* The image itself is sized to fill the square and cropped (cover) to preserve aspect ratio */
@@ -574,7 +579,10 @@ span.streaming-indicator {
 
 /* Optional: responsive sizing example */
 @media (max-width: 420px) {
-  .custom-image-wrapper { --image-size: 200px; }
+  .custom-image-wrapper {
+    width: 99px;
+    height: auto;
+}
 }
 
 /* ---------- File card styles ---------- */
@@ -590,7 +598,7 @@ span.streaming-indicator {
   transition: transform .12s ease, box-shadow .12s ease;
   color: inherit;
   vertical-align: middle;
-  min-width: 220px;
+  min-width: 130px;
   max-width: 420px;
 }
 

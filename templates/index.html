@@ -373,37 +373,104 @@
                     const imageRegex = /<up-img>(.*?)<\/up-img>/g;
                     let imagesHTML = '';
                     let match;
-                    const imagesToLoad = [];
+                    const attachments = [];
                     let imageCounter = 0;
-                
-                    // Extract image URLs and build HTML
-                    while ((match = imageRegex.exec(text)) !== null) {
-                        const url = match[1].trim().replace(/"/g, '&quot;');
-                        imagesToLoad.push(url);
+                  
+                    // helpers
+                    function basenameFromUrl(url) {
+                      try {
+                        const u = new URL(url, location.href);
+                        return decodeURIComponent(u.pathname.split('/').pop() || u.hostname);
+                      } catch (e) {
+                        return url;
+                      }
                     }
-                
-                    // Build the HTML without any inline event handlers
-                    imagesToLoad.forEach((url, index) => {
-                        const imageId = `img-${Date.now()}-${imageCounter++}`;
-                        const wrapperId = `wrapper-${imageId}`;
-                        
+                  
+                    function escapeHtml(str) {
+                      return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                    }
+                  
+                    // collect all <up-img> urls (handles multiple)
+                    while ((match = imageRegex.exec(text)) !== null) {
+                      const url = match[1].trim();
+                      if (url) attachments.push(url);
+                    }
+                  
+                    // file-type mapping
+                    const typeMap = {
+                      pdf: { cls: 'file-pdf', label: 'PDF', color: '#d6453b' },
+                      doc: { cls: 'file-doc', label: 'DOC', color: '#2b7de9' },
+                      docx: { cls: 'file-doc', label: 'DOCX', color: '#2b7de9' },
+                      xls: { cls: 'file-xls', label: 'XLS', color: '#1e9a4a' },
+                      xlsx: { cls: 'file-xls', label: 'XLSX', color: '#1e9a4a' },
+                      ppt: { cls: 'file-ppt', label: 'PPT', color: '#e67e22' },
+                      pptx: { cls: 'file-ppt', label: 'PPTX', color: '#e67e22' },
+                      txt: { cls: 'file-txt', label: 'TXT', color: '#6c757d' },
+                      csv: { cls: 'file-txt', label: 'CSV', color: '#6c757d' }
+                    };
+                  
+                    // build HTML for each attachment
+                    attachments.forEach((rawUrl) => {
+                      const url = rawUrl.trim();
+                      const safeUrl = escapeHtml(url);
+                      const safeText = escapeHtml(basenameFromUrl(url));
+                      const id = `img-${Date.now()}-${imageCounter++}`;
+                      const wrapperId = `wrapper-${id}`;
+                  
+                      // remove query/hash for extension detection
+                      const trimmedUrl = url.split(/[?#]/)[0];
+                  
+                      // get last extension part (if any)
+                      const extMatch = trimmedUrl.match(/\.([^.\/]+)$/);
+                      const ext = extMatch ? extMatch[1].toLowerCase() : null;
+                  
+                      // reliable image check using extension (no leading-dot mismatch)
+                      const isImage = !!ext && /^(png|jpe?g|gif|svg|webp|bmp|avif)$/i.test(ext);
+                  
+                      if (isImage) {
+                        // image: no link, same wrapper structure as before
                         imagesHTML += `
-                            <div class="custom-image-wrapper image-loading" id="${wrapperId}" data-image-id="${imageId}">
-                                <img class="custom-image-element" 
-                                     id="${imageId}"
-                                     src="${url}" 
-                                     alt="Loading image..." 
-                                     loading="lazy"
-                                     data-wrapper="${wrapperId}">
-                            </div>
+                          <div class="custom-image-wrapper image-loading" id="${wrapperId}" data-image-id="${id}">
+                            <img class="custom-image-element"
+                                 id="${id}"
+                                 src="${safeUrl}"
+                                 alt="${safeText}"
+                                 loading="lazy"
+                                 data-wrapper="${wrapperId}">
+                          </div>
                         `;
+                      } else {
+                        // file: clickable card (anchor)
+                        const extKey = ext || 'file';
+                        const info = typeMap[extKey] || { cls: 'file-generic', label: extKey ? extKey.toUpperCase() : 'FILE', color: '#6c757d' };
+                  
+                        imagesHTML += `
+                          <a class="file-card ${info.cls}" href="${safeUrl}" target="_blank" rel="noopener noreferrer" aria-label="${safeText} (${escapeHtml(info.label)})" style="color: ${escapeHtml(info.color)}">
+                            <span class="file-card-icon" aria-hidden="true">
+                              <svg viewBox="0 0 48 48" width="32" height="32" role="img" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                                <path class="file-shape" d="M10 4h20l8 8v28a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="currentColor"/>
+                              </svg>
+                            </span>
+                            <span class="file-card-info">
+                              <span class="file-card-name" style="display:none;">${safeText}</span>
+                              <span class="file-card-meta">${escapeHtml(info.label.toUpperCase())}</span>
+                            </span>
+                          </a>
+                        `;
+                      }
                     });
-                
+                  
                     const cleanedText = text.replace(imageRegex, '').trim();
                     return { cleanedText, imagesHTML };
-                }
+                  }
+                  
 
-                function setupImageObserver() {
+                    function setupImageObserver() {
                     const observer = new MutationObserver(function(mutations) {
                         mutations.forEach(function(mutation) {
                             if (mutation.type === 'childList') {
@@ -2416,6 +2483,7 @@ async function loadHistoryPanel() {
                     activeChatId = null;
                     createNewChat(); // Go to new chat view
                     loadHistoryPanel();
+
                 }
 
             });

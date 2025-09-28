@@ -677,22 +677,14 @@ transition: width 0.3s ease, background-color 0.3s ease;
     transition: width 0.3s ease, background-color 0.3s ease;
     }
 
-.custom-image-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: none;
-    border-radius: auto;
-    background-color: #e4e4e4;
-    max-width: 400px;
-    margin: 2px auto;
-    white-space: normal; 
-  }
-  
-  .custom-image-wrapper {
-    position: relative;
-    display: inline-block;
-}
+    .message-images {
+        display: flex;
+        flex-direction: row-reverse;
+        flex-wrap: wrap;
+        align-content: flex-end;
+    }
+
+
 
 .image-loading {
     position: relative;
@@ -735,3 +727,10 @@ transition: width 0.3s ease, background-color 0.3s ease;
     border-radius: 17px;
     user-select: none;
   }
+  a.file-card.file-xls {
+    padding: 4px 15px 4px 6px;
+}
+
+.bubble.bubble-user pre {
+    overflow-x: auto;
+}
