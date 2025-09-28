@@ -15,6 +15,12 @@
       box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
       color: #0f172a;
     }
+
+    #custom-notification {
+      background-color: #ffffff;
+      color: #333333;
+      border: 1px solid #e0e0e0;
+  }
     .chat-menu {
       background: #f9f9f9;
       border: 1px solid #d5d5d5;
@@ -102,7 +108,7 @@
     /* thinking block */
     .thinking-block { background: transparent; color: #161616; }
     .thinking-content { color: #334155; }
-    .thinking-content p::before { border: 8px solid #f5f7fa; background: #666; }
+    .thinking-content p::before { border: 8px solid ffffff; background: #666; }
     .thinking-dot { background: #3b82f6; }
   
     /* modal */
@@ -758,6 +764,11 @@
   .custom-image-wrapper {
     background-color: #363636;
   }
+  #custom-notification {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #414141;
+}
 
   }
   

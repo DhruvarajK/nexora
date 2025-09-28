@@ -1540,6 +1540,23 @@ async function loadHistoryPanel() {
                 }
             }
         }
+
+        const notificationDiv = document.createElement('div');
+        notificationDiv.id = 'custom-notification';
+        document.body.appendChild(notificationDiv);
+        // Function to show notification
+        function showNotification(message, isSuccess = true) {
+            notificationDiv.textContent = message;
+            notificationDiv.style.opacity = '1';
+            notificationDiv.style.visibility = 'visible';
+            notificationDiv.style.transform = 'translateX(-50%) translateY(0)';
+            
+            setTimeout(() => {
+                notificationDiv.style.opacity = '0';
+                notificationDiv.style.visibility = 'hidden';
+                notificationDiv.style.transform = 'translateX(-50%) translateY(-100%)';
+            }, 2000); // Unified timeout of 2000ms for both success and error
+        }
         
         function updateBotChunk(chunk) {
             streamingBuffer += chunk;
@@ -1943,6 +1960,7 @@ async function loadHistoryPanel() {
                     this.style.height = 'auto';
                     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
                 });
+
         
                 const previewButtonContainer = panel.querySelector('#preview-button-container');
                 const runButtonContainer = panel.querySelector('#run-button-container');
@@ -1982,19 +2000,10 @@ async function loadHistoryPanel() {
                 textArea.select();
                 try {
                     document.execCommand('copy');
-                    console.log('Code copied to clipboard!');
-                    const messageBox = document.createElement('div');
-                    messageBox.textContent = 'Copied! ✔';
-                    messageBox.style.cssText = 'position: fixed; top: 20px; right: 20px; background-color: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; z-index: 1001;';
-                    document.body.appendChild(messageBox);
-                    setTimeout(() => messageBox.remove(), 2000);
+                    showNotification('Copied');
                 } catch (err) {
                     console.error('Failed to copy code: ', err);
-                    const messageBox = document.createElement('div');
-                    messageBox.textContent = 'Copy Failed ✖';
-                    messageBox.style.cssText = 'position: fixed; top: 20px; right: 20px; background-color: #f44336; color: white; padding: 10px 20px; border-radius: 5px; z-index: 1001;';
-                    document.body.appendChild(messageBox);
-                    setTimeout(() => messageBox.remove(), 2000);
+                    showNotification('Copy Failed');
                 }
                 document.body.removeChild(textArea);
             };
@@ -2012,7 +2021,7 @@ async function loadHistoryPanel() {
                             body: JSON.stringify({ filename, code })
                         });
                         if (res.ok) {
-                            showToast('File saved successfully! ✔', 'success');
+                            showNotification('File saved');
                             await loadCodeFiles(); // Refresh the file list
                             const newFile = await res.json();
                             currentOpenFile = { id: newFile.id, filename: newFile.filename }; // Update current file state
@@ -2021,18 +2030,21 @@ async function loadHistoryPanel() {
                         }
                     } catch (error) {
                         console.error("Save failed:", error);
-                        showToast('Save failed ✖', 'error');
+                        showNotification('Save Failed');
                     }
                 }
             };
         
             panel.querySelector('#canvas-chat-send').onclick = async () => {
+
+                const chatInput =  panel.querySelector('#canvas-chat-input');
+                chatInput.style.height = '40px';  
                 const prompt = document.getElementById('canvas-chat-input').value;
                 const code = monacoEditor?.getValue() || '';
                 if (!prompt) return;
         
                 document.getElementById('canvas-chat-input').value = '';
-                showToast('AI is thinking...', 'info');
+                showNotification('AI is thinking...');
         
                 if (monacoEditor) {
                     monacoEditor.setValue('');
@@ -2091,10 +2103,10 @@ async function loadHistoryPanel() {
                             }
                         }
                     }
-                    showToast('AI edit complete! ✔', 'success');
+                    showNotification('AI edit complete');
                 } catch (error) {
                     console.error('Canvas chat error:', error);
-                    showToast(`AI chat failed: ${error.message}`, 'error');
+                    showNotification('AI chat failed');
                 }
             };
         
@@ -2128,22 +2140,7 @@ async function loadHistoryPanel() {
                 }
             };
         
-            function showToast(message, type = 'info') {
-                const toast = document.createElement('div');
-                toast.textContent = message;
-                toast.className = `toast toast-${type}`;
-                document.body.appendChild(toast);
-            
-                // Force reflow to enable transition
-                void toast.offsetWidth; 
-            
-                toast.classList.add('show'); // Add 'show' class to trigger animation
-            
-                setTimeout(() => {
-                    toast.classList.remove('show'); // Remove 'show' class to start fade-out
-                    toast.addEventListener('transitionend', () => toast.remove(), { once: true }); // Remove after transition
-                }, 3000);
-            }
+        
         
             // --- Existing Preview Feature Logic ---
             const previewBtn = panel.querySelector('#btn-preview');
@@ -2462,32 +2459,52 @@ async function loadHistoryPanel() {
             }).catch(error => console.error('Failed to send feedback:', error));
         }
      
+        // Create the custom notification div once (this should be done outside the copy function, e.g., on page load after DOM is ready)
+        
+
+// Updated copyMessage function using the custom div
         function copyMessage(bubble) {
             const text = bubble.querySelector('.message-content').textContent;
             const textArea = document.createElement('textarea');
             textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
             document.body.appendChild(textArea);
+            textArea.focus();
             textArea.select();
+            
             try {
-                document.execCommand('copy');
-                const messageBox = document.createElement('div');
-                messageBox.textContent = 'Copied!';
-                messageBox.style.cssText = 'position: fixed;top: 15px;right: 20px;background-color: rgb(250 250 250);color: #404040;padding: 7px 18px;border-radius: 11px;z-index: 1001;box-shadow: 0 0 3px 0px rgb(0 0 0 / 51%);font-size: 12px;font-family: monospace;';
-                document.body.appendChild(messageBox);
-                setTimeout(() => messageBox.remove(), 2000);
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showNotification('Copied');
+                } else {
+                    throw new Error('Copy command failed');
+                }
             } catch (err) {
                 console.error('Failed to copy message:', err);
-                const messageBox = document.createElement('div');
-                messageBox.textContent = 'Copy Failed';
-                messageBox.style.cssText = 'position: fixed;top: 15px;right: 20px;background-color: rgb(250 250 250);color: #404040;padding: 7px 18px;border-radius: 11px;z-index: 1001;box-shadow: 0 0 3px 0px rgb(0 0 0 / 51%);font-size: 12px;font-family: monospace;';
-                document.body.appendChild(messageBox);
-                setTimeout(() => messageBox.remove(), 2000);
+                // Modern fallback: use navigator.clipboard if available
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showNotification('Copied');
+                    }).catch(err2 => {
+                        console.error('Clipboard API failed:', err2);
+                        showNotification('Copy failed. Please select and copy manually.');
+                    });
+                } else {
+                    showNotification('Copy failed. Please select and copy manually.');
+                }
+            } finally {
+                document.body.removeChild(textArea);
             }
-            document.body.removeChild(textArea);
         }
+
+// Example usage:
+// Assuming you have a bubble element: copyMessage(yourBubbleElement);
      
         async function exportToPDF(bubble, text) {
             try {
+                showNotification("Exporting..");
                 const response = await fetch('/export_pdf', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2502,6 +2519,7 @@ async function loadHistoryPanel() {
                     });
                     throw new Error(`Failed to export PDF: ${response.status} - ${errorText}`);
                 }
+                showNotification("Exported..");
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -2518,11 +2536,8 @@ async function loadHistoryPanel() {
                     inputContent: text, // Log the input content for debugging
                     chatId: activeChatId
                 });
-                const messageBox = document.createElement('div');
-                messageBox.textContent = `Export Failed: ${error.message}`;
-                messageBox.style.cssText = 'position: fixed;top: 15px;right: 20px;background-color: rgb(250 250 250);color: #404040;padding: 7px 18px;border-radius: 11px;z-index: 1001;box-shadow: 0 0 3px 0px rgb(0 0 0 / 51%);font-size: 12px;font-family: monospace;';
-                document.body.appendChild(messageBox);
-                setTimeout(() => messageBox.remove(), 3000); // Increased duration for visibility
+                const errmsg = `Export Failed: ${error.message}`;
+                showNotification(errmsg);
             }
         }
 

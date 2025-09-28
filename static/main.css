@@ -509,7 +509,7 @@
   border-radius: 50%;
   z-index: 1;
   transition: all 0.2s ease;
-  border: 8px solid #f5f7fa;
+  border: 8px solid #ffffff;
 }
 
 .thinking-block .complete{
@@ -518,13 +518,15 @@
 
 /* Hover effects */
 .thinking-content p:hover::before {
-  background-color: #000000be;
+  background-color: #000000;
   transform: scale(1.2);
+  cursor: pointer;
 }
 
 .thinking-content p:hover {
-  color: #000000be;
-  transition: color 0.2s ease;
+  color: #000000;
+  transition: color 0.6s ease;
+  cursor: pointer;
 }
 
 
