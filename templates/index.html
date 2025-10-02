@@ -102,7 +102,7 @@
                     </button>
                    
                     <div id="upload-preview-container" style="display: none;"></div>
-                    <div><textarea id="input-msg" rows="1" placeholder="Type your message..."></textarea></div>
+                    <div><textarea id="input-msg" rows="1" placeholder="Ask Anything"></textarea></div>
                     <div class="controls-main">
                         <div class="tools-mn">
                             <button id="upload-btn" class="expand-button">
@@ -236,7 +236,65 @@
         const searchOptions = document.querySelectorAll('.search-option');
 
 
-        
+        const reasonBtn = document.getElementById('reason-btn');
+
+        const sysBtn = document.getElementById('sys-access');
+        const imgBtn = document.getElementById('img-btn');
+        const incoBtn = document.getElementById('inco-btn');
+
+        const defaultPlaceholder = 'Ask Anything';
+
+        // Optional: Add a 'selected' class to visually indicate the active button
+        function selectButton(btn) {
+        [reasonBtn, searchBtn, sysBtn, imgBtn, incoBtn].forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        }
+
+        // Event listeners for each button with toggle behavior
+        reasonBtn.addEventListener('click', () => {
+        if (reasonBtn.classList.contains('selected')) {
+            input.placeholder = defaultPlaceholder;
+            reasonBtn.classList.remove('selected');
+        } else {
+            input.placeholder = 'Deep think about your query';
+            selectButton(reasonBtn);
+        }
+        });
+
+
+
+        sysBtn.addEventListener('click', () => {
+        if (sysBtn.classList.contains('selected')) {
+            input.placeholder = defaultPlaceholder;
+            sysBtn.classList.remove('selected');
+        } else {
+            input.placeholder = 'Analysis tool in use';
+            selectButton(sysBtn);
+        }
+        });
+
+        imgBtn.addEventListener('click', () => {
+        if (imgBtn.classList.contains('selected')) {
+            input.placeholder = defaultPlaceholder;
+            imgBtn.classList.remove('selected');
+        } else {
+            input.placeholder = 'Describe the image you want to generate';
+            selectButton(imgBtn);
+        }
+        });
+
+        incoBtn.addEventListener('click', () => {
+        if (incoBtn.classList.contains('selected')) {
+            input.placeholder = defaultPlaceholder;
+            incoBtn.classList.remove('selected');
+        } else {
+            input.placeholder = 'Enter your anonymous query';
+            selectButton(incoBtn);
+        }
+        });
+
+
+    
         let parseDebounceTimer = null;
         let pendingParseContent = null;
 
@@ -279,10 +337,17 @@
         }
 
 
-
         searchBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     untoggleOtherButtons(searchBtn);
+
+                    if (searchBtn.classList.contains('selected')) {
+                        input.placeholder = defaultPlaceholder;
+                        searchBtn.classList.remove('selected');
+                    } else {
+                        input.placeholder = 'What do you want to search for?';
+                        selectButton(searchBtn);
+                    }
                     
                     // If search is currently active, deactivate it
                     if (isSearchActive) {
@@ -1019,11 +1084,6 @@ async function loadHistoryPanel() {
           
                 left.appendChild(titleDiv);
           
-                // optional subtitle (could be last message preview later)
-                // const subtitle = document.createElement('div');
-                // subtitle.className = 'chat-list-subtitle';
-                // subtitle.textContent = '...';
-                // left.appendChild(subtitle);
                 chatdelta.appendChild(left)
           
                 // Right side: timestamp + menu

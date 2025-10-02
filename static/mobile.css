@@ -486,7 +486,7 @@
     svg.nav-icon {
         width: 23px;
         height: 23px;
-        opacity: 0.8;
+        opacity: 0.9;
     }
 
     svg#hist-ico{
@@ -500,6 +500,8 @@
 
     .side-panel-ic {
         gap: 6px;
+        display: flex;
+        justify-content: flex-start;
     }
 
     /* Logo adjustments */
@@ -755,6 +757,8 @@
         width: 20px;
         height: 20px;
     }
+
+
 
     /* Tweak header */
     header {
