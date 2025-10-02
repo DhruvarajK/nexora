@@ -659,7 +659,7 @@
     .mobile-history-toggle {
     display: none;
     position: fixed;
-    top: 2px;
+    top: 12px;
     left: 3px;
     z-index: 100;
     background: none;
@@ -701,7 +701,7 @@
             width: 100vw;
             height: 100vh;
             z-index: 99;
-            padding-top: 60px;
+            padding-top: 0;
         }
     }
 
@@ -898,6 +898,15 @@ async function loadHistoryPanel() {
                         
             UpperTools.appendChild(FilesBtn);
 
+            const newHisBar = document.createElement('div');
+
+            newHisBar.innerHTML = `<div class="history-search"><svg class="history-search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input type="text" id="chat-search-input" placeholder="Search chats..." autocomplete="off">
+        </div>
+    `;
+            historyPanel.appendChild(newHisBar);
             historyPanel.appendChild(UpperTools);
 
             const chatSection = document.createElement('div');
@@ -995,9 +1004,11 @@ async function loadHistoryPanel() {
             historyPanel.classList.add('open');
             mobileToggleBtn.classList.add('active');
             mobileToggleBtn.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+<svg style="transform: rotate(270deg) scale(1.3);" fill="currentColor" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Interface / Download">
+<path id="Vector" d="M6 21H18M12 3V17M12 17L17 12M12 17L7 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>
             `;
         }
     };
@@ -1145,7 +1156,74 @@ async function loadHistoryPanel() {
             }
           
             updateSidebarActiveState();
-          }
+
+            setupChatSearch();
+        }
+
+        function setupChatSearch() {
+            const searchInput = document.getElementById('chat-search-input');
+            if (!searchInput) return;
+        
+            let searchTimeout = null;
+        
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                
+                // Clear previous timeout
+                clearTimeout(searchTimeout);
+                
+                // Debounce search by 300ms
+                searchTimeout = setTimeout(() => {
+                    filterChats(searchTerm);
+                }, 300);
+            });
+        
+            // Optional: Clear search on ESC key
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    filterChats('');
+                }
+            });
+
+            
+        }
+        
+        function filterChats(searchTerm) {
+            const chatItems = document.querySelectorAll('.chat-list-item');
+            let visibleCount = 0;
+        
+            chatItems.forEach(item => {
+                const titleElement = item.querySelector('.chat-list-title');
+                const title = titleElement ? titleElement.textContent.toLowerCase() : '';
+                
+                if (searchTerm === '' || title.includes(searchTerm)) {
+                    item.classList.remove('hidden-by-search');
+                    visibleCount++;
+                } else {
+                    item.classList.add('hidden-by-search');
+                }
+            });
+        
+            // Optional: Show "no results" message
+            const chatList = document.getElementById('chat-list');
+            let noResultsMsg = chatList.querySelector('.no-search-results');
+            
+            if (visibleCount === 0 && searchTerm !== '') {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.className = 'no-search-results';
+                    noResultsMsg.style.padding = '20px';
+                    noResultsMsg.style.textAlign = 'center';
+                    noResultsMsg.style.color = '#999';
+                    noResultsMsg.style.fontSize = '14px';
+                    noResultsMsg.textContent = 'No chats found';
+                    chatList.appendChild(noResultsMsg);
+                }
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        }
           
 
         

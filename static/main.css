@@ -2017,3 +2017,40 @@ display: none;
   font-weight: 600;
 }
 .btn-primary:hover{ filter: brightness(.95); }
+
+
+.history-search {
+  padding: 3px 6px;
+  margin: 4px 6px 9px 2px;
+  position: relative;
+}
+
+.history-search input {
+  width: 90%;
+  padding: 14px 10px 15px 52px;
+  border: 1px solid #ededed;
+  border-radius: 25px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.history-search input:focus {
+  outline: none;
+}
+
+.history-search-icon
+ {
+    position: absolute;
+    left: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.chat-list-item.hidden-by-search {
+  display: none !important;
+}

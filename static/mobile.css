@@ -144,7 +144,7 @@
     }
 
     #history:not(.collapsed) #chat-list {
-      max-height: 620px; 
+      min-height: 700px; 
     }
     
 
@@ -741,18 +741,18 @@
 
 
 @media (max-width: 768px) {
-    .nex-l {
-        font-size: 20px;
-        font-family: monospace;
-        font-weight: 900;
-        display: flex;
-        align-items: center;
-        gap: 2px;
-        /* background-color: #1f1f1f; */
-        padding: 3px 10px;
-        border-radius: 12px;
-        cursor: pointer;
-    }
+  .nex-l {
+    font-size: 20px;
+    font-family: monospace;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 4px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 6px;
+}
     .nex-l svg {
         width: 20px;
         height: 20px;
@@ -994,7 +994,7 @@
 
     .new-ch-tog {
         position: absolute;
-        top: 10px;
+        top: 19px;
         right: 10px;
         z-index: 1;
     }
