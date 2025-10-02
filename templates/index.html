@@ -235,6 +235,31 @@
         const searchDropdown = document.getElementById('search-dropdown');
         const searchOptions = document.querySelectorAll('.search-option');
 
+
+        
+        let parseDebounceTimer = null;
+        let pendingParseContent = null;
+
+        function debouncedParse(text, callback, immediate = false) {
+            pendingParseContent = text;
+            
+            if (immediate) {
+                clearTimeout(parseDebounceTimer);
+                const result = parseMarkdown(text);
+                callback(result);
+                return;
+            }
+            
+            clearTimeout(parseDebounceTimer);
+            parseDebounceTimer = setTimeout(() => {
+                const result = parseMarkdown(pendingParseContent);
+                callback(result);
+                pendingParseContent = null;
+            }, 100); // Parse every 100ms during streaming
+        }
+
+
+
         function toggleExclusiveButton(clickedButton) {
             untoggleOtherButtons(clickedButton);
             clickedButton.classList.toggle('expanded');
@@ -1593,22 +1618,28 @@ async function loadHistoryPanel() {
         
 
         function finalizeStreamingMessage() {
+            // Clear any pending debounced parses
+            clearTimeout(parseDebounceTimer);
+            
             const botBubbles = chatContainer.querySelectorAll('.bubble-bot');
             const lastBotBubble = botBubbles[botBubbles.length - 1];
+            
             if (lastBotBubble) {
                 const messageContent = lastBotBubble.querySelector('.message-content');
                 if (messageContent) {
-                    // Remove the cursor and re-render the final content
-                    messageContent.innerHTML = parseMarkdown(streamingBuffer);
-                    renderMathInElement(messageContent, {
-                        delimiters: [
-                            { left: "$$", right: "$$", display: true },
-                            { left: "\\[", right: "\\]", display: true },
-                            { left: "$", right: "$", display: false },
-                            { left: "\\(", right: "\\)", display: false }
-                        ]
-                    });
-                    applyPostProcessing(messageContent);
+                    // Final parse with immediate flag
+                    debouncedParse(streamingBuffer, (parsedHTML) => {
+                        messageContent.innerHTML = parsedHTML;
+                        renderMathInElement(messageContent, {
+                            delimiters: [
+                                { left: "$$", right: "$$", display: true },
+                                { left: "\\[", right: "\\]", display: true },
+                                { left: "$", right: "$", display: false },
+                                { left: "\\(", right: "\\)", display: false }
+                            ]
+                        });
+                        applyPostProcessing(messageContent);
+                    }, true); // immediate = true for final render
                 }
             }
         }
@@ -1634,79 +1665,93 @@ async function loadHistoryPanel() {
             streamingBuffer += chunk;
             const botBubbles = chatContainer.querySelectorAll('.bubble-bot');
             const lastBotBubble = botBubbles[botBubbles.length - 1];
+            
             if (lastBotBubble) {
                 const wasAtBottom = isAtBottom();
                 const messageContent = lastBotBubble.querySelector('.message-content') || document.createElement('div');
                 messageContent.className = 'message-content';
                 
-                // Parse markdown first, then add cursor
-                messageContent.innerHTML = parseMarkdown(streamingBuffer);
-                
-                // Add streaming cursor after parsing
-                const cursorElement = document.createElement('span');
-                cursorElement.className = 'streaming-cursor';
-                messageContent.appendChild(cursorElement);
-                
-                renderMathInElement(messageContent, {
-                    delimiters: [
-                        { left: "$$", right: "$$", display: true },
-                        { left: "\\[", right: "\\]", display: true },
-                        { left: "$", right: "$", display: false },
-                        { left: "\\(", right: "\\)", display: false }
-                    ]
+                // Use debounced parsing for better performance
+                debouncedParse(streamingBuffer, (parsedHTML) => {
+                    // Use requestAnimationFrame to avoid blocking
+                    requestAnimationFrame(() => {
+                        messageContent.innerHTML = parsedHTML;
+                        
+                        // Add streaming cursor
+                        const cursorElement = document.createElement('span');
+                        cursorElement.className = 'streaming-cursor';
+                        messageContent.appendChild(cursorElement);
+                        
+                        // Batch DOM operations
+                        if (lastBotBubble.querySelector('.message-content')) {
+                            lastBotBubble.querySelector('.message-content').replaceWith(messageContent);
+                        } else {
+                            lastBotBubble.innerHTML = '';
+                            lastBotBubble.appendChild(messageContent);
+                        }
+                        
+                        // Defer non-critical operations
+                        setTimeout(() => {
+                            renderMathInElement(messageContent, {
+                                delimiters: [
+                                    { left: "$$", right: "$$", display: true },
+                                    { left: "\\[", right: "\\]", display: true },
+                                    { left: "$", right: "$", display: false },
+                                    { left: "\\(", right: "\\)", display: false }
+                                ]
+                            });
+                            applyPostProcessing(messageContent);
+                        }, 50);
+                        
+                        // Add button container if it doesn't exist
+                        let buttonContainer = lastBotBubble.querySelector('.message-buttons');
+                        if (!buttonContainer) {
+                            buttonContainer = document.createElement('div');
+                            buttonContainer.className = 'message-buttons';
+                            buttonContainer.innerHTML = `
+                                <div class="action-buttons h-8 mt-0.5 flex flex-row flex-wrap w-full justify-between last-response print:hidden">
+                                <div class="flex items-center w-max rounded-lg text-xs start-0 md:start-3 -ml-4 -mt-2 opacity-100 p-0 gap-0" style="bottom: 120px;">
+                                <button class="copy-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Copy" data-state="closed"><span style="opacity: 1; transform: none;">
+                                        ${CopyIcon}</span>
+                                </button>
+                                <button class="like-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Like" id="radix-«r1oc»" aria-haspopup="menu" aria-expanded="false" data-state="closed"><span style="opacity: 1; transform: none;">
+                                    ${Like}</span>
+                                </button>
+                                <button class="dislike-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Dislike" id="radix-«r1oi»" aria-haspopup="menu" aria-expanded="false" data-state="closed"><span style="opacity: 1; transform: none;">
+                                    ${Dislike}</span>
+                                </button>
+                                <div class="tooltip">
+                                    <button class="regen-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Regenerate" data-state="closed"><span style="opacity: 1; transform: none;">
+                                        ${ReGen}</span>
+                                        </button>
+                                    <span class="tooltip-text">Regerate</span>
+                                </div>
+                                <button class="export-pdf-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60 relative" type="button" aria-label="Start thread" data-state="closed"><span style="opacity: 1; transform: none;">
+                                        ${ExpIco}</span>
+                                </button>
+                                
+                                    </div>
+                                </div>
+                            `;
+                            lastBotBubble.appendChild(buttonContainer);
+                            
+                            const likeBtn = buttonContainer.querySelector('.like-btn');
+                            const dislikeBtn = buttonContainer.querySelector('.dislike-btn');
+                            const copyBtn = buttonContainer.querySelector('.copy-btn');
+                            const exportBtn = buttonContainer.querySelector('.export-pdf-btn');
+                            likeBtn.onclick = () => handleFeedback(lastBotBubble, 'like');
+                            dislikeBtn.onclick = () => handleFeedback(lastBotBubble, 'dislike');
+                            copyBtn.onclick = () => copyMessage(lastBotBubble);
+                            exportBtn.onclick = () => exportToPDF(lastBotBubble, streamingBuffer);
+                        }
+                        
+                        if (wasAtBottom) {
+                            scrollToBottom();
+                        }
+                    });
                 });
-                applyPostProcessing(messageContent);
-                lastBotBubble.innerHTML = '';
-                lastBotBubble.appendChild(messageContent);
-        
-                // Add or update button container (existing code...)
-                let buttonContainer = lastBotBubble.querySelector('.message-buttons');
-                if (!buttonContainer) {
-                    buttonContainer = document.createElement('div');
-                    buttonContainer.className = 'message-buttons';
-                    buttonContainer.innerHTML = `
-                        <div class="action-buttons h-8 mt-0.5 flex flex-row flex-wrap w-full justify-between last-response print:hidden">
-                    <div class="flex items-center w-max rounded-lg text-xs start-0 md:start-3 -ml-4 -mt-2 opacity-100 p-0 gap-0" style="bottom: 120px;">
-                    <button class="copy-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Copy" data-state="closed"><span style="opacity: 1; transform: none;">
-                            ${CopyIcon}</span>
-                    </button>
-                    <button class="like-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Like" id="radix-«r1oc»" aria-haspopup="menu" aria-expanded="false" data-state="closed"><span style="opacity: 1; transform: none;">
-                        ${Like}</span>
-                    </button>
-                    <button class="dislike-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Dislike" id="radix-«r1oi»" aria-haspopup="menu" aria-expanded="false" data-state="closed"><span style="opacity: 1; transform: none;">
-                        ${Dislike}</span>
-                    </button>
-                     <div class="tooltip">
-                        <button class="regen-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60" type="button" aria-label="Regenerate" data-state="closed"><span style="opacity: 1; transform: none;">
-                            ${ReGen}</span>
-                            </button>
-                        <span class="tooltip-text">Regerate</span>
-                    </div>
-                    <button class="export-pdf-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed transition-colors duration-100 [&amp;_svg]:shrink-0 select-none text-fg-secondary hover:text-fg-primary hover:bg-button-ghost-hover disabled:hover:text-fg-secondary disabled:hover:bg-transparent [&amp;_svg]:hover:text-fg-primary h-10 w-10 rounded-full opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 [.last-response_&amp;]:opacity-100 disabled:opacity-0 group-focus-within:disabled:opacity-60 group-hover:disabled:opacity-60 [.last-response_&amp;]:disabled:opacity-60 relative" type="button" aria-label="Start thread" data-state="closed"><span style="opacity: 1; transform: none;">
-                            ${ExpIco}</span>
-                    </button>
-                    
-                        </div>
-                    </div>
-                    `;
-                    lastBotBubble.appendChild(buttonContainer);
-                    const likeBtn = buttonContainer.querySelector('.like-btn');
-                    const dislikeBtn = buttonContainer.querySelector('.dislike-btn');
-                    const copyBtn = buttonContainer.querySelector('.copy-btn');
-                    const exportBtn = buttonContainer.querySelector('.export-pdf-btn');
-                    likeBtn.onclick = () => handleFeedback(lastBotBubble, 'like');
-                    dislikeBtn.onclick = () => handleFeedback(lastBotBubble, 'dislike');
-                    copyBtn.onclick = () => copyMessage(lastBotBubble);
-                    exportBtn.onclick = () => exportToPDF(lastBotBubble, streamingBuffer);
-                }
-                if (wasAtBottom) {
-                    setTimeout(() => {
-                        scrollToBottom();
-                    }, 0);
-                }
             }
         }
-
 
         function applyPostProcessing(element) {
             element.querySelectorAll('pre code').forEach(codeElem => {

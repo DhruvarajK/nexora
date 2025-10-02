@@ -71,16 +71,34 @@ function parseTableBlock(header, sep, rows) {
 function handleTableFormatting(text) {
   const lines = text.split('\n');
   const out = [];
+  
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].includes('|') && lines[i+1] && isTableSeparator(lines[i+1])) {
-      const header = lines[i], sep = lines[i+1];
+    const line = lines[i];
+    
+    // Quick check before expensive operations
+    if (!line.includes('|')) {
+      out.push(line);
+      continue;
+    }
+    
+    const nextLine = lines[i + 1];
+    if (nextLine && isTableSeparator(nextLine)) {
+      const header = line;
+      const sep = nextLine;
       const rows = [];
       i += 2;
-      while (lines[i] && lines[i].includes('|')) { rows.push(lines[i++]); }
+      
+      while (lines[i] && lines[i].includes('|')) {
+        rows.push(lines[i++]);
+      }
+      
       out.push(parseTableBlock(header, sep, rows));
       i--;
-    } else out.push(lines[i]);
+    } else {
+      out.push(line);
+    }
   }
+  
   return out.join('\n');
 }
 
@@ -97,31 +115,45 @@ function escapeHtml(str) {
 // --- REASONING PARSER — improved streaming support ---
 function parseReasoning(text) {
   const thinkingBlocks = [];
-  // Matches each <think>…</think> or an unterminated <think>… at end-of-string
-  text = text.replace(
-    /<think>([\s\S]*?)(?:<\/think>|$)/g,
-    (match, content) => {
-      // complete if we actually saw a closing tag
-      const complete = /<\/think>$/.test(match);
-      thinkingBlocks.push({ content: content.trim(), complete });
-      return `@@THINK${thinkingBlocks.length - 1}@@`;
-    }
-  );
-  return { text, thinkingBlocks };
+  let lastIndex = 0;
+  const thinkRegex = /<think>([\s\S]*?)(?:<\/think>|$)/g;
+  let match;
+  let result = '';
+  
+  while ((match = thinkRegex.exec(text)) !== null) {
+    // Add text before this match
+    result += text.slice(lastIndex, match.index);
+    
+    const complete = /<\/think>$/.test(match[0]);
+    thinkingBlocks.push({ content: match[1].trim(), complete });
+    result += `@@THINK${thinkingBlocks.length - 1}@@`;
+    
+    lastIndex = thinkRegex.lastIndex;
+  }
+  
+  // Add remaining text
+  result += text.slice(lastIndex);
+  
+  return { text: result, thinkingBlocks };
 }
 
 function parseExecCode(text) {
   const execCodeBlocks = [];
+  let lastIndex = 0;
+  const execRegex = /###CODE_EXEC([\s\S]*?)###CODE_EXEC/g;
+  let match;
+  let result = '';
   
-
-  text = text.replace(/###CODE_EXEC([\s\S]*?)###CODE_EXEC/g, (match, code) => {
-    // Clean up the code - remove leading/trailing whitespace but preserve internal formatting
-    const cleanCode = code.trim();
-    execCodeBlocks.push(cleanCode);
-    return `@@EXEC${execCodeBlocks.length-1}@@`;
-  });
+  while ((match = execRegex.exec(text)) !== null) {
+    result += text.slice(lastIndex, match.index);
+    execCodeBlocks.push(match[1].trim());
+    result += `@@EXEC${execCodeBlocks.length-1}@@`;
+    lastIndex = execRegex.lastIndex;
+  }
   
-  return { text, execCodeBlocks };
+  result += text.slice(lastIndex);
+  
+  return { text: result, execCodeBlocks };
 }
 
 // Add this function to restore exec-code blocks
@@ -174,21 +206,26 @@ export function parseMarkdown(text) {
   const { text: reasoningParsedText, thinkingBlocks } = parseReasoning(text);
   text = reasoningParsedText;
 
-  // Handle streaming and complete code blocks
-  text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
-    codeBlocks.push({ lang: lang || detectLanguage(code), code, complete: true });
-    return `@@CB${codeBlocks.length-1}@@`;
-  });
-  text = text.replace(/```(\w+)?\n([\s\S]*)$/gm, (match, lang, code) => {
-    const before = text.slice(0, text.indexOf(match));
-    const openCount = (before.match(/```/g) || []).length;
-    if (openCount % 2 === 0) {
+  let codeBlockIndex = 0;
+  text = text.replace(/```(\w+)?\n/g, (match, lang, offset) => {
+    // Find the closing ```
+    const closingIndex = text.indexOf('```', offset + match.length);
+    
+    if (closingIndex !== -1) {
+      // Complete block
+      const code = text.slice(offset + match.length, closingIndex);
+      codeBlocks.push({ lang: lang || detectLanguage(code), code, complete: true });
+      return `@@CB${codeBlocks.length-1}@@\x00${closingIndex + 3}`; // Mark end position
+    } else {
+      // Streaming block
+      const code = text.slice(offset + match.length);
       codeBlocks.push({ lang: lang || detectLanguage(code), code, complete: false });
-      return `@@CB${codeBlocks.length-1}@@`;
+      return `@@CB${codeBlocks.length-1}@@\x00${text.length}`;
     }
-    return match;
   });
 
+  // Clean up the markers
+  text = text.replace(/\x00\d+```/g, '').replace(/\x00\d+$/g, '');
   // Handle inline code
   text = text.replace(/`([^`]+)`/g, (_, c) => {
     inlineCodes.push(c);
