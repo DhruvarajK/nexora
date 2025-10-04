@@ -40,3 +40,4 @@ huggingface-hub
 pyzbar
 pywebpush 
 cryptography
+pytz
