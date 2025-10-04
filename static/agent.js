@@ -1,3 +1,101 @@
+const isCapacitorNative = () => {
+  try {
+    if (!window.Capacitor) return false;
+    // Capacitor provides getPlatform() or isNative flag depending on version
+    if (typeof window.Capacitor.getPlatform === 'function') {
+      return window.Capacitor.getPlatform() !== 'web';
+    }
+    return !!window.Capacitor.isNative;
+  } catch (e) { return false; }
+};
+
+// ---------- Capacitor push & local notifications using global plugins ----------
+async function capacitorRegisterForPush() {
+  try {
+    const Plugins = window.Capacitor && window.Capacitor.Plugins;
+    if (!Plugins) {
+      console.warn('Capacitor plugins not available on window.');
+      return;
+    }
+
+    const PushNotifications = Plugins.PushNotifications;
+    const LocalNotifications = Plugins.LocalNotifications;
+
+    // Request local notifications permission (so we can schedule from WS)
+    try {
+      if (LocalNotifications && LocalNotifications.requestPermissions) {
+        await LocalNotifications.requestPermissions();
+      }
+    } catch (e) { console.warn('LocalNotifications request failed', e); }
+
+    // Request push permission & register
+    if (!PushNotifications || !PushNotifications.requestPermissions) {
+      console.warn('PushNotifications plugin not available.');
+      return;
+    }
+
+    const perm = await PushNotifications.requestPermissions();
+    // different Capacitor versions return different shapes; be permissive
+    const granted = perm && (perm.receive === 'granted' || perm.granted === true || perm.display === 'granted');
+    if (!granted) {
+      console.warn('Push notification permission not granted on device', perm);
+      return;
+    }
+
+    await PushNotifications.register();
+
+    // registration listener (get device token)
+    if (PushNotifications.addListener) {
+      PushNotifications.addListener('registration', (token) => {
+        console.log('Device token (capacitor):', token);
+        // send token to server
+        fetch('/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ token: token.value || token, platform: 'capacitor' })
+        }).catch(err => console.warn('send token failed', err));
+      });
+
+      // incoming push while app foregrounded
+      PushNotifications.addListener('pushNotificationReceived', (notification) => {
+        try {
+          const t = notification.title || (notification.data && notification.data.title) || 'Nexora';
+          const b = notification.body || (notification.data && (notification.data.message || notification.data.body)) || '';
+          if (LocalNotifications && LocalNotifications.schedule) {
+            LocalNotifications.schedule({
+              notifications: [{
+                id: Date.now() % 100000,
+                title: t,
+                body: b,
+                smallIcon: 'ic_stat_icon' // ensure you add this resource in Android
+              }]
+            }).catch(e => {
+              console.warn('LocalNotifications schedule failed', e);
+              // fallback to in-web Notification if possible
+              if (Notification.permission === 'granted') new Notification(t, { body: b });
+            });
+          } else {
+            if (Notification.permission === 'granted') new Notification(t, { body: b });
+          }
+        } catch (e) { console.warn(e); }
+      });
+
+      // action performed (tap)
+      PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+        try {
+          if (action && action.notification && action.notification.data && action.notification.data.url) {
+            window.location.href = action.notification.data.url;
+          }
+        } catch (e) { console.warn(e); }
+      });
+    }
+  } catch (err) {
+    console.warn('capacitorRegisterForPush error', err);
+  }
+}
+
+
 let swRegistration = null;
 async function tryRegister() {
   const candidates = ['/sw.js', '/static/sw.js'];
@@ -23,27 +121,28 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function subscribeToPush() {
-  if (!swRegistration) {
-    await tryRegister();
-    if (!swRegistration) return;
+  if (isCapacitorNative()) {
+    return capacitorRegisterForPush();
   }
-  if (Notification.permission !== 'granted') {
-    const p = await Notification.requestPermission();
-    if (p !== 'granted') return;
-  }
-  if (!PUBLIC_VAPID_KEY) return;
 
+  // Browser flow (your existing SW + VAPID)
   try {
-    // reuse existing subscription when available
-    const existing = await swRegistration.pushManager.getSubscription();
-    let sub = existing;
-    if (!sub) {
-      const key = urlBase64ToUint8Array(PUBLIC_VAPID_KEY);
-      sub = await swRegistration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
-    }
+    if (!swRegistration) await tryRegister();
+    if (!swRegistration) return;
 
-    // Send subscription to server (server should dedupe)
+    if (Notification.permission !== 'granted') {
+      const p = await Notification.requestPermission();
+      if (p !== 'granted') return;
+    }
+    if (!PUBLIC_VAPID_KEY) return;
+
     try {
+      const existing = await swRegistration.pushManager.getSubscription();
+      let sub = existing;
+      if (!sub) {
+        const key = urlBase64ToUint8Array(PUBLIC_VAPID_KEY);
+        sub = await swRegistration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+      }
       await fetch('/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,7 +152,6 @@ async function subscribeToPush() {
     } catch (err) { console.warn('send subscription failed', err); }
   } catch (err) { console.warn(err); }
 }
-
 
 // ----- WebSocket -----
 function wsScheme() { return location.protocol === 'https:' ? 'wss' : 'ws'; }
@@ -67,45 +165,76 @@ function createWs() {
 }
 
 function connectWs() {
-  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) { return; }
+  // Prevent duplicate connection attempts
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+
   ws = createWs();
 
   ws.onopen = () => {
-  reconnectDelay = 1000;
+    reconnectDelay = 1000;
+    console.log('ws open');
   };
-  ws.onmessage = (ev) => {
-  try {
-   const data = JSON.parse(ev.data);
-   if (data.type === 'notification') {
-     // Prefer SW if available:
-     if (swRegistration) {
-     try {
-      swRegistration.showNotification(data.title || 'Agent', { 
-        body: data.message || data.body || '',
-        icon: '/icons/icon-192.png',
-        badge: '/icons/badge-72.png'
-      });
-     } catch (e) {
-      // fallback
-      if (Notification.permission === 'granted') new Notification(data.title || 'Agent', { 
-        body: data.message || data.body || '',
-        icon: '/icons/icon-192.png'
-      });
-     }
-     } else {
-     if (Notification.permission === 'granted') new Notification(data.title || 'Agent', { 
-      body: data.message || data.body || '',
-      icon: '/icons/icon-192.png'
-     });
-     }
-   }
-  } catch (e) {}
+
+  // reuse single message handler function for clarity
+  const wsOnMessageHandler = async function(ev) {
+    try {
+      const data = JSON.parse(ev.data);
+      if (data.type === 'notification') {
+        const title = data.title || 'Agent';
+        const body = data.message || data.body || '';
+
+        if (isCapacitorNative()) {
+          const Plugins = window.Capacitor && window.Capacitor.Plugins;
+          const LocalNotifications = Plugins && Plugins.LocalNotifications;
+          if (LocalNotifications && LocalNotifications.schedule) {
+            try {
+              // requestPermissions (harmless if already granted)
+              if (LocalNotifications.requestPermissions) {
+                await LocalNotifications.requestPermissions();
+              }
+              await LocalNotifications.schedule({
+                notifications: [{
+                  id: Date.now() % 100000,
+                  title,
+                  body,
+                  smallIcon: 'ic_stat_icon'
+                }]
+              });
+            } catch (e) {
+              console.warn('LocalNotifications schedule failed', e);
+              if (Notification.permission === 'granted') new Notification(title, { body });
+            }
+          } else {
+            if (Notification.permission === 'granted') new Notification(title, { body });
+          }
+        } else if (swRegistration && typeof swRegistration.showNotification === 'function') {
+          try {
+            swRegistration.showNotification(title, { body, icon: '/icons/icon-192.png', badge: '/icons/badge-72.png' });
+          } catch (e) {
+            if (Notification.permission === 'granted') new Notification(title, { body, icon: '/icons/icon-192.png' });
+          }
+        } else {
+          if (Notification.permission === 'granted') new Notification(title, { body, icon: '/icons/icon-192.png' });
+        }
+      }
+    } catch (e) {
+      console.warn('ws onmessage parse failed', e);
+    }
   };
+
+  ws.onmessage = wsOnMessageHandler;
+
   ws.onclose = (ev) => {
-  if (shouldReconnect) scheduleReconnect();
+    console.log('ws closed', ev);
+    if (shouldReconnect) scheduleReconnect();
   };
-  ws.onerror = (err) => {};
+
+  ws.onerror = (err) => {
+    console.warn('ws error', err);
+    // let onclose handle reconnection
+  };
 }
+
 
 function scheduleReconnect() {
   if (!shouldReconnect) return;
