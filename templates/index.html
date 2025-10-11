@@ -49,6 +49,7 @@
         </div>
         
         <div id="chat-box">
+            <canvas id="CanavaView"></canvas>
             
             <div class="mob-header">
                 <div class="nex-l"><svg class="nav-icon" width="27" height="27" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 7L10 0H8L2 7V9H7L6 16H8L14 9L14 7H9Z" fill="currentColor"></path></svg>Nex</div>
@@ -3541,6 +3542,217 @@ async function exportToPDF(bubble, text) {
           // If you need to open programmatically: window.CustomImageLightbox.open(url);
         });
         </script>
+
+<script>
+    const canvas = document.getElementById('CanavaView');
+    if (!canvas) throw new Error("Canvas element with id 'CanavaView' not found");
+    const ctx = canvas.getContext('2d');
+    
+    let particles = [];
+    let w = 0, h = 0;
+    let speedMultiplier = 10;
+    let particleSize = 130;
+    let particleOpacity = 0.1;
+    let colorHue = 190;
+    
+    let animationId = null;
+    let isAnimating = false;
+    let resizeTimeout = null;
+    
+    // sprite cache to avoid creating gradients every frame
+    const spriteCache = new Map();
+    
+    // Utility: create a pre-rendered circular gradient sprite
+    function createSprite(size, hue, baseOpacity) {
+    // round keys so cache isn't too big
+    const key = `${Math.round(size)}|${Math.round(hue)}|${+baseOpacity.toFixed(2)}`;
+    if (spriteCache.has(key)) return spriteCache.get(key);
+    
+    const s = Math.ceil(size * 2 * devicePixelRatio);
+    const off = document.createElement('canvas');
+    off.width = off.height = s;
+    const octx = off.getContext('2d');
+    
+    // scale to handle DPR
+    octx.scale(devicePixelRatio, devicePixelRatio);
+    
+    const center = size;
+    const grad = octx.createRadialGradient(center, center, 0, center, center, size);
+    grad.addColorStop(0, `hsla(${hue},100%,65%,${baseOpacity})`);
+    grad.addColorStop(0.4, `hsla(${hue},100%,60%,${baseOpacity * 0.7})`);
+    grad.addColorStop(1, `hsla(${hue},100%,55%,0)`);
+    
+    octx.fillStyle = grad;
+    octx.beginPath();
+    octx.arc(center, center, size, 0, Math.PI * 2);
+    octx.fill();
+    
+    spriteCache.set(key, off);
+    // keep cache size bounded
+    if (spriteCache.size > 200) { // arbitrary limit
+        // remove first entry
+        const k = spriteCache.keys().next().value;
+        spriteCache.delete(k);
+    }
+    
+    return off;
+    }
+    
+    function resizeCanvas() {
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    w = Math.floor(window.innerWidth);
+    h = Math.floor(window.innerHeight);
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale drawing to CSS pixels
+    }
+    
+    // Debounced init on resize
+    function handleResizeDebounced() {
+    if (resizeTimeout) clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        init();
+        resizeTimeout = null;
+    }, 120);
+    }
+    
+    class Particle {
+    constructor() {
+        this.reset();
+    }
+    
+    reset() {
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.targetSize = particleSize + Math.random() * 100;
+        this.size = this.targetSize;
+        this.baseSpeedX = (Math.random() - 0.5) * 0.5;
+        this.baseSpeedY = (Math.random() - 0.5) * 0.5;
+        this.baseOpacity = particleOpacity;
+        this.hue = colorHue + Math.random() * 15;
+        this.pulseOffset = Math.random() * Math.PI * 2;
+    }
+    
+    update() {
+        this.x += this.baseSpeedX * speedMultiplier;
+        this.y += this.baseSpeedY * speedMultiplier;
+    
+        // wrap
+        if (this.x < -this.size) this.x = w + this.size;
+        if (this.x > w + this.size) this.x = -this.size;
+        if (this.y < -this.size) this.y = h + this.size;
+        if (this.y > h + this.size) this.y = -this.size;
+    
+        // small random walk
+        if (Math.random() < 0.01) {
+        this.baseSpeedX += (Math.random() - 0.5) * 0.1;
+        this.baseSpeedY += (Math.random() - 0.5) * 0.1;
+        this.baseSpeedX = Math.max(-0.8, Math.min(0.8, this.baseSpeedX));
+        this.baseSpeedY = Math.max(-0.8, Math.min(0.8, this.baseSpeedY));
+        }
+    
+        this.size += (this.targetSize - this.size) * 0.05;
+        this.pulseOffset += 0.02;
+    }
+    
+    draw() {
+        const pulse = Math.sin(this.pulseOffset) * 0.15 + 1;
+        const currentSize = this.size * pulse;
+        const sprite = createSprite(currentSize, this.hue, this.baseOpacity);
+        // drawImage handles the alpha and scaling; sprite is DPR-aware already
+        ctx.drawImage(
+        sprite,
+        this.x - currentSize,
+        this.y - currentSize,
+        currentSize * 2,
+        currentSize * 2
+        );
+    }
+    }
+    
+    function init() {
+    resizeCanvas();
+    // optionally clear sprite cache if canvas size changed drastically
+    // spriteCache.clear();
+    
+    const particleCount = 15; // keep same count; you can reduce for performance
+    if (particles.length > particleCount) {
+        particles.length = 0; // clear old references
+    } else {
+        particles = [];
+    }
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+    }
+    
+    function animate() {
+    // one loop tick
+    ctx.clearRect(0, 0, w, h);
+    
+    for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.update();
+        p.draw();
+    }
+    
+    animationId = requestAnimationFrame(animate);
+    }
+    
+    // visibility handler: pause when hidden
+    function handleVisibilityChange() {
+    if (document.hidden) {
+        stopAnimation();
+    } else {
+        startAnimation();
+    }
+    }
+    
+    // Toggle function
+    function toggleAnimation() {
+    if (isAnimating) stopAnimation();
+    else startAnimation();
+    return isAnimating;
+    }
+    
+    function startAnimation() {
+    if (isAnimating) return;
+    isAnimating = true;
+    if (!animationId) animationId = requestAnimationFrame(animate);
+    }
+    
+    function stopAnimation() {
+    if (!isAnimating) return;
+    isAnimating = false;
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+    }
+    
+    // Attach listeners once (but start animation only on load)
+    window.addEventListener('resize', handleResizeDebounced, { passive: true });
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Clean up helper in case you remove this component
+    function destroy() {
+    stopAnimation();
+    window.removeEventListener('resize', handleResizeDebounced);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    if (resizeTimeout) clearTimeout(resizeTimeout);
+    particles = [];
+    spriteCache.clear();
+    }
+    
+    // Start only after full page load (resources/images/fonts done)
+    window.addEventListener('load', () => {
+    init();
+    startAnimation();
+    });
+            
+</script>
 
 
         

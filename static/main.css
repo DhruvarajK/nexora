@@ -259,6 +259,8 @@
             border-radius: 29px;
             margin-bottom: 7px;
             background-color: white;
+            position: relative;
+            z-index: 3;
         }
 
  /* Suggestion blocks */
@@ -824,6 +826,8 @@ body.light .modal-content p {
   font-size: 14px;
   overflow-x: hidden;
   justify-content: space-between;
+  position: relative;
+  z-index: 3;
 }
 .new-chat-btn {
   display: flex;
