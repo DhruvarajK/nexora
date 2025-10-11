@@ -2039,6 +2039,10 @@ display: none;
   position: relative;
 }
 
+.mobile-hist-tog {
+  display: none;
+}
+
 .history-search input {
   width: 100%;
   padding: 9px 0px 9px 45px;
