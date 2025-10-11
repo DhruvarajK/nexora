@@ -744,7 +744,7 @@
     font-size: 20px;
     font-family: monospace;
     font-weight: 900;
-    display: flex;
+    display: none;
     align-items: center;
     gap: 2px;
     padding: 3px 4px;
