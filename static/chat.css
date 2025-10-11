@@ -125,38 +125,6 @@
     list-style: decimal;
   }
 
-  .math-block {
-    margin: 1em 0;
-    padding: 0.5em;
-    background-color: #f9f9f9;
-    border: 1px solid #dfdfdf;
-    border-radius: 16px;
-    overflow-x: auto;
-    font-family: 'Cambria Math', serif;
-    text-align: center;
-}
-  
-  /* Math inline styling */
-  .math-inline {
-    display: inline-block;
-    margin: 0 0.1em;
-    padding: 0.1em 0.2em;
-    background-color: #f0f0f0;
-    border-radius: 2px;
-    font-family: 'Cambria Math', serif;
-  }
-  
-  /* KaTeX-specific tweaks if using KaTeX */
-  .katex {
-    line-height: 1.2;
-  }
-  .katex .katex-html {
-    font-size: 1em;
-  }
-  .katex .katex-display {
-    margin: 0;
-  }
-  
 
   span.language-label {
     font-size: 14px;

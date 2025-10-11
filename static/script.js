@@ -65,6 +65,93 @@ function parseTableBlock(header, sep, rows) {
   return `<div class="tbl-out"><table class="chatgpt-table">${thead}${tbody}</table></div>`;
 }
 
+function convertLatexToUnicode(text) {
+  const greekMap = {
+      // Uppercase Greek
+      '\\Alpha': 'Α',
+      '\\Beta': 'Β',
+      '\\Gamma': 'Γ',
+      '\\Delta': 'Δ',
+      '\\Epsilon': 'Ε',
+      '\\Zeta': 'Ζ',
+      '\\Eta': 'Η',
+      '\\Theta': 'Θ',
+      '\\Iota': 'Ι',
+      '\\Kappa': 'Κ',
+      '\\Lambda': 'Λ',
+      '\\Mu': 'Μ',
+      '\\Nu': 'Ν',
+      '\\Xi': 'Ξ',
+      '\\Omicron': 'Ο',
+      '\\Pi': 'Π',
+      '\\Rho': 'Ρ',
+      '\\Sigma': 'Σ',
+      '\\Tau': 'Τ',
+      '\\Upsilon': 'Υ',
+      '\\Phi': 'Φ',
+      '\\Chi': 'Χ',
+      '\\Psi': 'Ψ',
+      '\\Omega': 'Ω',  // ← YOUR PROBLEM CHILD
+      
+      // Lowercase Greek
+      '\\alpha': 'α',
+      '\\beta': 'β',
+      '\\gamma': 'γ',
+      '\\delta': 'δ',
+      '\\epsilon': 'ε',
+      '\\zeta': 'ζ',
+      '\\eta': 'η',
+      '\\theta': 'θ',
+      '\\iota': 'ι',
+      '\\kappa': 'κ',
+      '\\lambda': 'λ',
+      '\\mu': 'μ',
+      '\\nu': 'ν',
+      '\\xi': 'ξ',
+      '\\omicron': 'ο',
+      '\\pi': 'π',
+      '\\rho': 'ρ',
+      '\\sigma': 'σ',
+      '\\tau': 'τ',
+      '\\upsilon': 'υ',
+      '\\phi': 'φ',
+      '\\chi': 'χ',
+      '\\psi': 'ψ',
+      '\\omega': 'ω',
+      
+      // Common symbols
+      '\\infty': '∞',
+      '\\pm': '±',
+      '\\mp': '∓',
+      '\\times': '×',
+      '\\div': '÷',
+      '\\neq': '≠',
+      '\\leq': '≤',
+      '\\geq': '≥',
+      '\\approx': '≈',
+      '\\equiv': '≡',
+      '\\subset': '⊂',
+      '\\supset': '⊃',
+      '\\in': '∈',
+      '\\notin': '∉',
+      '\\forall': '∀',
+      '\\exists': '∃',
+      '\\nabla': '∇',
+      '\\partial': '∂',
+      '\\sum': '∑',
+      '\\prod': '∏',
+      '\\int': '∫',
+      '\\sqrt': '√'
+  };
+  
+  // Replace each LaTeX command with its Unicode symbol
+  for (const [latex, unicode] of Object.entries(greekMap)) {
+      text = text.replace(new RegExp(latex.replace(/\\/g, '\\\\'), 'g'), unicode);
+  }
+  
+  return text;
+}
+
 function handleTableFormatting(text) {
   const lines = text.split('\n');
   const out = [];
@@ -100,14 +187,16 @@ function handleTableFormatting(text) {
 }
 
 // --- ESCAPE HTML ---
-function escapeHtml(str) {
-  return str.replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
 }
-
 // --- REASONING PARSER ---
 // --- REASONING PARSER — improved streaming support ---
 function parseReasoning(text) {
@@ -224,27 +313,44 @@ export function parseMarkdown(text) {
   // Clean up the markers
   text = text.replace(/\x00\d+```/g, '').replace(/\x00\d+$/g, '');
   // Handle inline code
-  text = text.replace(/`([^`]+)`/g, (_, c) => {
+  text = text.replace(/`([^`\n]+?)`/g, (match, c) => {
+    // Skip if it looks like it might be math
+    if (match.includes('\\')) return match;
+    
     inlineCodes.push(c);
     return `@@IC${inlineCodes.length-1}@@`;
   });
 
-  // Escape HTML
-  text = escapeHtml(text);
+  const mathExpressions = [];
 
-  text = text.replace(
-    /\\begin\{(bmatrix|pmatrix)\}([\s\S]+?)\\end\{\1\}/g,
-    '<div class="math-block">\\[$0\\]</div>'
-  );
-  text = text.replace(
-    /(?<=\W|^)(\d+)\/(\d+)(?=\W|$)/g,
-    '<span class="math-inline">\\($1/$2\\)</span>'
-  );
-  text = text.replace(/\\\[((?:.|\n)+?)\\\]/g, '<div class="math-block">\\[$1\\]</div>');
-  text = text.replace(/\\\((.+?)\\\)/g, '<span class="math-inline">\\($1\\)</span>');
-  // Math Blocks (KaTeX)
-  text = text.replace(/\$\$([\s\S]+?)\$\$/g, '<div class="math-block">\\[$1\\]</div>');
-  text = text.replace(/\$([^\$]+?)\$/g, '<span class="math-inline">\\($1\\)</span>');
+text = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, content) => {
+  mathExpressions.push({ content, display: true, type: 'dollar' });
+  return `@@MATH${mathExpressions.length - 1}@@`;
+});
+
+text = text.replace(/\\\[((?:.|\n)+?)\\\]/g, (match, content) => {
+  mathExpressions.push({ content, display: true, type: 'bracket' });
+  return `@@MATH${mathExpressions.length - 1}@@`;
+});
+
+text = text.replace(/\\\((.+?)\\\)/g, (match, content) => {
+  console.log('Storing inline math:', content); // DEBUG
+  mathExpressions.push({ content, display: false, type: 'paren' });
+  return `@@MATH${mathExpressions.length - 1}@@`;
+});
+
+text = text.replace(/(?<=\s|^)\$([^\$\n]+?)\$(?=\s|$|[.,!?;:])/g, (match, content) => {
+  mathExpressions.push({ content, display: false, type: 'dollar' });
+  return `@@MATH${mathExpressions.length - 1}@@`;
+});
+
+// ====== NOW EXTRACT INLINE CODE (AFTER MATH) ======
+text = text.replace(/`([^`]+)`/g, (_, c) => {
+  inlineCodes.push(c);
+  return `@@IC${inlineCodes.length-1}@@`;
+});
+  // ====== NOW SAFE TO ESCAPE HTML ======
+  text = escapeHtml(text);  
 
   text = text.replace(
     /\[error\]\/\/(.+?)\/\//g,
@@ -684,6 +790,22 @@ text = text.replace(/\[\[!\]\]\((https?:\/\/[^)]+)\)/g, (match, url) => {
       };
     })();
     
+
+  // ====== RESTORE MATH EXPRESSIONS ======
+// ====== RESTORE MATH EXPRESSIONS ======
+text = text.replace(/@@MATH(\d+)@@/g, (_, i) => {
+  const math = mathExpressions[i];
+  let content = math.content;
+  
+  // Convert problematic LaTeX commands to Unicode symbols
+  content = convertLatexToUnicode(content);
+  
+  if (math.display) {
+    return `<div class="math-block">\\[${content}\\]</div>`;
+  } else {
+    return `<span class="math-inline">\\(${content}\\)</span>`;
+  }
+});
   
 
   text = '<p>' + text.replace(/\n\n+/g, '</p><p>') + '</p>';
@@ -692,7 +814,7 @@ text = text.replace(/\[\[!\]\]\((https?:\/\/[^)]+)\)/g, (match, url) => {
   // Restore inline codes
   text = text.replace(/@@IC(\d+)@@/g, (_, i) => `<code>${escapeHtml(inlineCodes[i])}</code>`);
 
-// --- RESTORING THINKING BLOCKS in parseMarkdown() ---
+  // --- RESTORING THINKING BLOCKS in parseMarkdown() ---
   text = text.replace(/@@THINK(\d+)@@/g, (_, i) => {
   const { content, complete } = thinkingBlocks[i];
   // choose label and animation based on whether we closed the block
@@ -719,7 +841,7 @@ text = text.replace(/\[\[!\]\]\((https?:\/\/[^)]+)\)/g, (match, url) => {
       ${parseMarkdown(content)}
     </div>
   </div>`;
-});
+  });
 
 
   // Restore code blocks

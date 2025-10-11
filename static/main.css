@@ -45,7 +45,7 @@
             }
             /* History panel */
             #history {
-                width: 280px;
+                width: 330px;
                 background: #ffffff;
                 border-right: 1px solid #e2e8f0;
                 overflow-y: auto;
@@ -297,7 +297,7 @@
   grid-template-columns: repeat(2, 0fr);
   margin: 1rem 0;
   justify-content: center;
-  width: 100%;
+  width: fit-content;
   position: absolute;
   top: 50%;
   justify-items: center;
@@ -863,9 +863,9 @@ svg.nav-icon {
 
 /* When the #history is NOT collapsed, apply the expanded styles */
 #history:not(.collapsed) #chat-list {
-  min-height: 700px; 
+  min-height: calc(100vh - 415px);
   opacity: 1;
-  padding-bottom: 50px;
+  padding-bottom: 20px;
 }
 
 .upper-tools {
@@ -906,7 +906,7 @@ span.chat-list-timestamp {
 }
 .chat-list-title{
 white-space: nowrap;
-width: 200px;
+width: 100%;
 overflow: hidden;
 text-overflow: ellipsis;
 }
@@ -1041,7 +1041,7 @@ margin: 8px;
   transition: opacity 0.3s ease, visibility 0.3s ease; /* Add a smooth transition */
 }
 
-.chat-list-item:hover .chat-menu-btn {
+.chat-list-wrapper:hover .chat-menu-btn {
   opacity: 1;
   visibility: visible;
 }
@@ -1707,7 +1707,7 @@ span.exec-code-label svg {
 
 
 .chat-delta{
-  width: 100%;
+  width: 88%;
 }
 
 
@@ -2085,4 +2085,404 @@ ease;
   border-radius: 10px;
   transition: background-color 0.2s ease;
   display: flex;
+}
+
+
+/* ========================================
+   MATH & LATEX STYLING
+   Auto Light/Dark Theme
+======================================== */
+
+/* Base Math Container Styles */
+.math-block,
+.math-inline {
+    transition: all 0.3s ease;
+}
+
+/* Display Math (Block) */
+.math-block {
+    margin: 1.5em 0;
+    padding: 1.2em;
+    border-radius: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+/* Light Theme - Math Block */
+@media (prefers-color-scheme: light) {
+    .math-block {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        color: #1a1a1a;
+    }
+    
+}
+
+/* Dark Theme - Math Block */
+@media (prefers-color-scheme: dark) {
+    .math-block {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #e8eaed;
+    }
+}
+
+/* Inline Math */
+.math-inline {
+    padding: 0.15em 0.4em;
+    margin: 0 0.1em;
+    border-radius: 6px;
+    font-size: 1.05em;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.4;
+}
+
+/* Light Theme - Inline Math */
+@media (prefers-color-scheme: light) {
+    .math-inline {
+        background: rgba(66, 133, 244, 0.08);
+        border: 1px solid rgba(66, 133, 244, 0.15);
+        color: #202124;
+    }
+    
+    .math-inline:hover {
+        background: rgba(66, 133, 244, 0.12);
+        border-color: rgba(66, 133, 244, 0.25);
+        box-shadow: 0 1px 4px rgba(66, 133, 244, 0.1);
+    }
+}
+
+/* Dark Theme - Inline Math */
+@media (prefers-color-scheme: dark) {
+    .math-inline {
+        background: rgba(138, 180, 248, 0.12);
+        border: 1px solid rgba(138, 180, 248, 0.2);
+        color: #e8eaed;
+    }
+    
+    .math-inline:hover {
+        background: rgba(138, 180, 248, 0.18);
+        border-color: rgba(138, 180, 248, 0.3);
+        box-shadow: 0 1px 6px rgba(138, 180, 248, 0.15);
+    }
+}
+
+/* KaTeX Specific Overrides */
+.katex {
+    font-size: 1.05em !important;
+}
+
+.katex-display {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Light Theme - KaTeX Colors */
+@media (prefers-color-scheme: light) {
+    .katex {
+        color: #202124 !important;
+    }
+    
+    .katex .mord,
+    .katex .mop,
+    .katex .mbin,
+    .katex .mrel,
+    .katex .mopen,
+    .katex .mclose,
+    .katex .mpunct {
+        color: #202124 !important;
+    }
+    
+    /* Operators */
+    .katex .mop {
+        color: #1a73e8 !important;
+    }
+    
+    /* Variables */
+    .katex .mathdefault {
+        color: #137333 !important;
+        font-style: italic;
+    }
+    
+    /* Numbers */
+    .katex .mord.mathrm {
+        color: #b31412 !important;
+    }
+}
+
+/* Dark Theme - KaTeX Colors */
+@media (prefers-color-scheme: dark) {
+    .katex {
+        color: #e8eaed !important;
+    }
+    
+    .katex .mord,
+    .katex .mop,
+    .katex .mbin,
+    .katex .mrel,
+    .katex .mopen,
+    .katex .mclose,
+    .katex .mpunct {
+        color: #e8eaed !important;
+    }
+    
+    /* Operators */
+    .katex .mop {
+        color: #8ab4f8 !important;
+    }
+    
+    /* Variables */
+    .katex .mathdefault {
+        color: #81c995 !important;
+        font-style: italic;
+    }
+    
+    /* Numbers */
+    .katex .mord.mathrm {
+        color: #f28b82 !important;
+    }
+}
+
+/* Fraction Styling */
+.katex .frac-line {
+    border-bottom-width: 0.06em !important;
+}
+
+@media (prefers-color-scheme: light) {
+    .katex .frac-line {
+        border-bottom-color: rgba(32, 33, 36, 0.3) !important;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .katex .frac-line {
+        border-bottom-color: rgba(232, 234, 237, 0.3) !important;
+    }
+}
+
+/* Square Root Styling */
+.katex .sqrt {
+    border-top-width: 0.06em !important;
+}
+
+@media (prefers-color-scheme: light) {
+    .katex .sqrt {
+        border-top-color: rgba(32, 33, 36, 0.3) !important;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .katex .sqrt {
+        border-top-color: rgba(232, 234, 237, 0.3) !important;
+    }
+}
+
+/* Matrix/Array Styling */
+.katex .arraycolsep {
+    width: 0.5em;
+}
+
+.katex .vlist-t {
+    border-collapse: separate;
+    border-spacing: 0.2em;
+}
+
+/* Parentheses and Brackets */
+@media (prefers-color-scheme: light) {
+    .katex .delimsizing,
+    .katex .delim-size1,
+    .katex .delim-size2,
+    .katex .delim-size3,
+    .katex .delim-size4 {
+        color: #5f6368 !important;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .katex .delimsizing,
+    .katex .delim-size1,
+    .katex .delim-size2,
+    .katex .delim-size3,
+    .katex .delim-size4 {
+        color: #9aa0a6 !important;
+    }
+}
+
+/* Scrollbar for Math Blocks */
+.math-block::-webkit-scrollbar {
+    height: 8px;
+}
+
+@media (prefers-color-scheme: light) {
+    .math-block::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+    }
+    
+    .math-block::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+    }
+    
+    .math-block::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .math-block::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+    }
+    
+    .math-block::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+    
+    .math-block::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Math Error Styling */
+.katex-error {
+    padding: 0.5em 0.8em;
+    border-radius: 8px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+}
+
+@media (prefers-color-scheme: light) {
+    .katex-error {
+        background: rgba(234, 67, 53, 0.1) !important;
+        border: 1px solid rgba(234, 67, 53, 0.3);
+        color: #c5221f !important;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .katex-error {
+        background: rgba(242, 139, 130, 0.15) !important;
+        border: 1px solid rgba(242, 139, 130, 0.3);
+        color: #f28b82 !important;
+    }
+}
+
+
+
+
+/* Accessibility - High Contrast Mode */
+@media (prefers-contrast: high) {
+    .math-block,
+    .math-inline {
+        border-width: 2px;
+    }
+    
+    @media (prefers-color-scheme: light) {
+        .math-block {
+            background: #ffffff;
+            border-color: #000000;
+            color: #000000;
+        }
+        
+        .math-inline {
+            background: #f0f0f0;
+            border-color: #000000;
+            color: #000000;
+        }
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .math-block {
+            background: #000000;
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+        
+        .math-inline {
+            background: #1a1a1a;
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+    }
+}
+
+/* Print Styles */
+@media print {
+    .math-block {
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+    }
+    
+    .math-inline {
+        background: transparent !important;
+        border: none !important;
+        color: #000000 !important;
+    }
+    
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+    .math-block {
+        padding: 1em;
+        margin: 1em 0;
+        font-size: 0.95em;
+    }
+    
+    .katex {
+        font-size: 1em !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .math-block {
+        padding: 0.8em;
+        margin: 0.8em 0;
+        font-size: 0.9em;
+    }
+    
+    .math-inline {
+        padding: 0.1em 0.3em;
+        font-size: 1em;
+    }
+}
+
+/* Animation for Math Rendering */
+@keyframes mathFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.math-block,
+.math-inline {
+    animation: mathFadeIn 0.4s ease-out;
+}
+
+/* Selection Styling */
+@media (prefers-color-scheme: light) {
+    .math-block ::selection,
+    .math-inline ::selection {
+        background: rgba(66, 133, 244, 0.3);
+        color: #202124;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .math-block ::selection,
+    .math-inline ::selection {
+        background: rgba(138, 180, 248, 0.3);
+        color: #e8eaed;
+    }
 }

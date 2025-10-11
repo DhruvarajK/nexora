@@ -192,9 +192,7 @@
     /* HR */
     .bubble hr { background: #e6e6e6; }
   
-    /* Math / KaTeX */
-    .math-block { background: #fafafa; border-color: #e6e6e6; color: #111827; }
-    .math-inline { background: #f3f4f6; color: #111827; }
+
   
     /* Code & hljs */
     .code-header { background: #f0f0f0; border-color: #ececec; color: #131722; }
@@ -577,14 +575,6 @@
   
     /* HR */
     .bubble hr { background: rgba(255,255,255,0.06); }
-  
-    /* Math / KaTeX */
-    .math-block {
-        background: #0d0d0e;
-        border-color: #2d2d2d;
-        color: #ececec;
-    }
-    .math-inline { background: rgba(255,255,255,0.02); color: #e2e2e2; }
   
     /* Code & hljs */
     .code-header { background: #1e1e1e; border-color: #2b343c; color: #fff; }

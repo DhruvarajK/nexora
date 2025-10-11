@@ -144,7 +144,7 @@
     }
 
     #history:not(.collapsed) #chat-list {
-      min-height: 700px; 
+      min-height: calc(100vh - 250px);
     }
     
 
@@ -820,10 +820,6 @@
 
 
     .tbl-out::-webkit-scrollbar {
-        width: 0px;
-      }
-
-      .math-block::-webkit-scrollbar {
         width: 0px;
       }
 
