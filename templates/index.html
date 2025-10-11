@@ -846,7 +846,6 @@
 
 
     function closeHistoryPanel() {
-        startAnimation();
         const mobileToggleBtn = document.querySelector('.mobile-history-toggle');
         
         if (mobileToggleBtn && window.innerWidth <= 768) {
@@ -866,7 +865,7 @@
 
 
     function createNewChat() {
-        stopAnimation();
+        startAnimation();
         closeHistoryPanel();
         activeChatId = null;
         is_private =null;
