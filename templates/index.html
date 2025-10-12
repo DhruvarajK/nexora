@@ -3904,7 +3904,7 @@ async function exportToPDF(bubble, text) {
                 if (i < fullText.length) {
                     currentText.textContent = fullText.slice(0, i);
                     i++;
-                    setTimeout(typeWriter, 20); // Faster typing for mobile responsiveness
+                    setTimeout(typeWriter, 60); // Faster typing for mobile responsiveness
                 } else {
                     currentText.textContent = fullText;
                     setTimeout(() => {
