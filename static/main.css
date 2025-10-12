@@ -23,7 +23,6 @@
                 justify-content: space-between;
                 z-index: 100;
             }
-            header h1 { font-size: 1.25rem; color: #111827; }
             .toggle-btn, .toggle-history {
               background: transparent;
               border: none;
