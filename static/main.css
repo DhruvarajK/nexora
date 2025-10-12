@@ -263,7 +263,6 @@
             z-index: 3;
         }
 
- /* Suggestion blocks */
  #suggestions-container {
   position: absolute;
   bottom: 110px;
@@ -311,7 +310,7 @@
 }
 
 .rec-block {
-  background: #121211e6;
+  background: #1c1c1c;
   padding: 15px 0px;
   padding: 15px 0px;
   border-radius: 25px;
@@ -2008,12 +2007,15 @@ body:has(#inco-btn.expanded) .bubble-user {
   border-radius: 10px;
   transition: background-color 0.2s ease;
   display: flex;
+  cursor: pointer;
 }
 
 svg#hist-ico {
   width: 21px;
   height: 21px;
 }
+
+
 
 .new-img-btn:hover{
   background-color: #3838381c;
@@ -2174,9 +2176,12 @@ ease;
   border-radius: 10px;
   transition: background-color 0.2s ease;
   display: flex;
+  cursor: pointer;
 }
 
-
+.new-agent-btn:hover{
+  background-color: #3838381c;
+}
 /* ========================================
    MATH & LATEX STYLING
    Auto Light/Dark Theme

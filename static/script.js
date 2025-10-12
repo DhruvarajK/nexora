@@ -293,21 +293,11 @@ export function parseMarkdown(text) {
   text = reasoningParsedText;
 
   let codeBlockIndex = 0;
-  text = text.replace(/```(\w+)?\n/g, (match, lang, offset) => {
-    // Find the closing ```
-    const closingIndex = text.indexOf('```', offset + match.length);
-    
-    if (closingIndex !== -1) {
-      // Complete block
-      const code = text.slice(offset + match.length, closingIndex);
-      codeBlocks.push({ lang: lang || detectLanguage(code), code, complete: true });
-      return `@@CB${codeBlocks.length-1}@@\x00${closingIndex + 3}`; // Mark end position
-    } else {
-      // Streaming block
-      const code = text.slice(offset + match.length);
-      codeBlocks.push({ lang: lang || detectLanguage(code), code, complete: false });
-      return `@@CB${codeBlocks.length-1}@@\x00${text.length}`;
-    }
+  text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+    // Complete block
+    const detectedLang = lang || detectLanguage(code);
+    codeBlocks.push({ lang: detectedLang, code, complete: true });
+    return `@@CB${codeBlocks.length-1}@@`;
   });
 
   // Clean up the markers

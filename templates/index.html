@@ -1107,8 +1107,10 @@
             const chatList = document.getElementById('chat-list');
             if (!chatList) return;
           
-            const res = await fetch('/chats');
+            const cacheBust = new Date().getTime();
+            const res = await fetch(`/chats?_=${cacheBust}`);
             const chats = await res.json();
+            
             chatList.innerHTML = ''; // Clear previous list
           
             // helper to format timestamp per your rules
@@ -2853,27 +2855,41 @@ function getIconSVG(iconType) {
             const chatItem = document.querySelector(`.chat-list-item[data-chat-id="${chatId}"]`);
             const currentName = chatItem ? chatItem.querySelector('.chat-list-title').textContent : '';
             showRenameModal(chatId, currentName, async (newTitle) => {
-                await fetch(`/chats/${chatId}/rename`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: newTitle })
-                });
-                loadHistoryPanel();
+                try {
+                    await fetch(`/chats/${chatId}/rename`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: newTitle })
+                    });
+                    
+                    await loadHistoryPanel(); // Await to ensure completion
+                    // Re-select active chat to sync sidebar/main view
+                    if (activeChatId === chatId) {
+                        selectChat(chatId);
+                    }
+                } catch (error) {
+                    console.error('Rename failed:', error);
+                    // Optional: Show user toast/error modal
+                }
             });
-        }
+        };
         
         window.deleteChat = async function(chatId) {
             showDeleteModal(chatId, async () => {
-                await fetch(`/chats/${chatId}`, { method: 'DELETE' });
-                if (chatId == activeChatId) {
-                    activeChatId = null;
-                    createNewChat(); // Go to new chat view
-                    loadHistoryPanel();
-
+                try {
+                    await fetch(`/chats/${chatId}`, { method: 'DELETE' });
+                
+                    if (chatId == activeChatId) {
+                        activeChatId = null;
+                        createNewChat(); // Go to new chat view
+                    }
+                    await loadHistoryPanel(); // Await to ensure completion
+                } catch (error) {
+                    console.error('Delete failed:', error);
+                    // Optional: Show user toast/error modal
                 }
-
             });
-        }
+        };
     
         function toggleMenu(chatId) {
             // Close all other menus first
@@ -3934,6 +3950,13 @@ async function exportToPDF(bubble, text) {
         
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', waitForElement);
+                console.log(
+                    "%c👋 Hey there, curious developer!\n%cI'm Dhruvaraj K — Full Stack Developer & AI Enthusiast.\nConnect with me on GitHub: %cgithub.com/DhruvarajK",
+                    "color: #888; font-size: 14px;",
+                    "color: #000; font-size: 14px; font-weight: bold;",
+                    "color: #0A66C2; font-size: 14px; text-decoration: underline; cursor:pointer;"
+                    );
+
             } else {
                 waitForElement();
             }
