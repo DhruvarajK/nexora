@@ -125,14 +125,6 @@
     .suggestion-block { background: #cfcfcf; color: #000; }
     .suggestion-block:hover { background: #e2e8f8; }
   
-    /* rec block */
-    .rec-block {
-      background: #121211e6;
-      color: #fff;
-      box-shadow: 0 0 3px rgba(0,0,0,0.08);
-    }
-    .rec-block:hover { background: #424242; }
-  
     /* thinking block */
     .thinking-block { background: transparent; color: #161616; }
     .thinking-content { color: #334155; }
@@ -453,13 +445,6 @@
     }
     .suggestion-block:hover { background: #31404b; }
   
-    /* rec block */
-    .rec-block {
-      color: #eaf6ff;
-    background-color: #1c1c1c;
-    border: 1px solid #474747;
-    }
-    .rec-block:hover { background-color: #3030315e }
 
     .user-avatar-initial{
         background: linear-gradient(135deg, #121212, #474747);

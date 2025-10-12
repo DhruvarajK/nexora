@@ -284,23 +284,8 @@
         border-radius: 20px;
     }
 
-    #rec-container {
-        grid-template-columns: 1fr;
-        gap: 16px;
-        margin: 2rem 1rem;
-        position: static;
-        bottom: 92px;
-        padding: 0;
-        top: auto;
-        position: absolute;
-        display: flex;
-        width: 95%;
-    }
 
-    .rec-block {
-        padding: 12px;
-        font-size: 13px;
-    }
+
 
 
         .thinking-block {
@@ -661,6 +646,10 @@
     .source-link-r + .source-link-r {
         margin-left: -8px;
     }
+
+    .streaming-cursor {
+      margin-bottom: 2px;
+  }
 }
 
 /* Extra small screens (phones in portrait) */
