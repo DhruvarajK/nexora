@@ -11,6 +11,11 @@
       bottom: 50px;
   }
 
+  #inco-btn.expand-button.expanded {
+    display: flex;
+    gap: 6px;
+}
+
 
 
     
@@ -546,11 +551,7 @@
       height: 20px; 
   }
   
-  #inco-btn .expand-button .label {
-      opacity: 0;
-      transition: opacity 0.2s ease 0.1s;
-  }
-  
+
   #inco-btn.expand-button.expanded {
     background-color: #bdc3ff73 !important;
     color: #1124ed73 !important;
