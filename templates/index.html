@@ -67,6 +67,11 @@
                 <div id="suggestions-container" style="display:none;"></div>
             </div>
             <div id="input-area">
+                <div class="scroll-to-bottom-btn-wrapper">
+                    <button id="scroll-to-bottom-btn" style="display: none;" class="scroll-to-bottom"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.70711 9.71069C5.31658 10.1012 5.31658 10.7344 5.70711 11.1249L10.5993 16.0123C11.3805 16.7927 12.6463 16.7924 13.4271 16.0117L18.3174 11.1213C18.708 10.7308 18.708 10.0976 18.3174 9.70708C17.9269 9.31655 17.2937 9.31655 16.9032 9.70708L12.7176 13.8927C12.3271 14.2833 11.6939 14.2832 11.3034 13.8927L7.12132 9.71069C6.7308 9.32016 6.09763 9.32016 5.70711 9.71069Z" fill="currentColor"/></svg>
+                    </button>
+                </div>
                 <div class="inco-info"><div class="inner-inco-info"><span></span><span>This conversation is temporary and won’t be saved to your history.</span></div> </div>
                 
                 <div class="search-dropdown" id="search-dropdown">
@@ -141,13 +146,29 @@
                     </div>
                 </div>
                 <div class="input-box">
-                    <button id="scroll-to-bottom-btn" style="display: none;" class="scroll-to-bottom"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M5.70711 9.71069C5.31658 10.1012 5.31658 10.7344 5.70711 11.1249L10.5993 16.0123C11.3805 16.7927 12.6463 16.7924 13.4271 16.0117L18.3174 11.1213C18.708 10.7308 18.708 10.0976 18.3174 9.70708C17.9269 9.31655 17.2937 9.31655 16.9032 9.70708L12.7176 13.8927C12.3271 14.2833 11.6939 14.2832 11.3034 13.8927L7.12132 9.71069C6.7308 9.32016 6.09763 9.32016 5.70711 9.71069Z" fill="currentColor"/></svg>
-                    </button>
+                    
                    
                     <div id="upload-preview-container" style="display: none;"></div>
                     <div><textarea id="input-msg" rows="1" placeholder="Ask Anything"></textarea></div>
-                    <div class="controls-main">
+                    <div class="controls-main" id="controlsMain">
+                        <div class="ai-tooltip" id="aiTooltip" role="dialog" aria-label="Tip: Tools available" aria-hidden="true">
+                            <div class="tip-grid">
+                              <div>
+                                <div style="display:inline-flex;gap:5px;align-items:center;flex-direction: row-reverse; margin-bottom: 6px;">
+                                  <div class="chip" aria-hidden="true">New</div>
+                                  <div class="tip-title">Use New Tools</div>
+                                </div>
+                                <div class="tip-body">
+                                  Click <strong>Quick</strong> to explore Code, Search, and Image gen.
+                                </div>
+                              </div>
+                              <div style="display:flex;align-items:flex-start;">
+                                <button class="tip-close" aria-label="Close tooltip">&times;</button>
+                              </div>
+                            </div>
+                            <span class="__arrow-stroke" aria-hidden="true"></span>
+                            <span class="__arrow" aria-hidden="true"></span>
+                          </div>
                         <div class="tools-mn">
                             <button id="upload-btn" class="expand-button">
                                 <svg width="20" height="20" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
@@ -164,7 +185,7 @@
                                 
                             </button>
                            
-                            <button id="search-btn" class="expand-button expanded"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.31993 13.28H12.4099V20.48C12.4099 21.54 13.7299 22.04 14.4299 21.24L21.9999 12.64C22.6599 11.89 22.1299 10.72 21.1299 10.72H18.0399V3.51997C18.0399 2.45997 16.7199 1.95997 16.0199 2.75997L8.44994 11.36C7.79994 12.11 8.32993 13.28 9.31993 13.28Z" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 4H1.5" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 20H1.5" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 12H1.5" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="label">Quick</span></button>
+                            <button id="search-btn" class="expand-button expanded"><svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" d="M0 0h24v24H0z"/><path d="M9.973 18h4.054c.132-1.202.745-2.194 1.74-3.277.113-.122.832-.867.917-.973a6 6 0 1 0-9.37-.002c.086.107.807.853.918.974.996 1.084 1.609 2.076 1.741 3.278zM14 20h-4v1h4v-1zm-8.246-5a8 8 0 1 1 12.49.002C17.624 15.774 16 17 16 18.5V21a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.5C8 17 6.375 15.774 5.754 15zM13 10.004h2.5l-4.5 6v-4H8.5L13 6v4.005z"/></g></svg><span class="label">Quick</span></button>
                             <button id="inco-btn" class="expand-button" onclick="this.classList.toggle('expanded')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 17.5C21 19.433 19.433 21 17.5 21C15.567 21 14 19.433 14 17.5C14 15.567 15.567 14 17.5 14C19.433 14 21 15.567 21 17.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M2 11H14M22 11H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 11L4.6138 8.54479C5.15947 6.36211 5.43231 5.27077 6.24609 4.63538C7.0057 4.0423 8.03639 4.00282 10 4.00019M20 11L19.3862 8.54479C18.8405 6.36211 18.5677 5.27077 17.7539 4.63538C16.9943 4.0423 15.9636 4.00282 14 4.00019" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10 17.5C10 19.433 8.433 21 6.5 21C4.567 21 3 19.433 3 17.5C3 15.567 4.567 14 6.5 14C8.433 14 10 15.567 10 17.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M10 17.4999L10.6584 17.1707C11.5029 16.7484 12.4971 16.7484 13.3416 17.1707L14 17.4999" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="label">Incognito</span></button>
                         </div>
                         <div class="sned-main-btn">
@@ -615,10 +636,9 @@
                         }
                         label.textContent = 'Quick';
                         svg.innerHTML = `
-                            <path d="M9.31993 13.28H12.4099V20.48C12.4099 21.54 13.7299 22.04 14.4299 21.24L21.9999 12.64C22.6599 11.89 22.1299 10.72 21.1299 10.72H18.0399V3.51997C18.0399 2.45997 16.7199 1.95997 16.0199 2.75997L8.44994 11.36C7.79994 12.11 8.32993 13.28 9.31993 13.28Z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M8.5 4H1.5" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M7.5 20H1.5" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M4.5 12H1.5" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>`;
+                            <path fill="none" d="M0 0h24v24H0z"/>
+                                <path d="M9.973 18h4.054c.132-1.202.745-2.194 1.74-3.277.113-.122.832-.867.917-.973a6 6 0 1 0-9.37-.002c.086.107.807.853.918.974.996 1.084 1.609 2.076 1.741 3.278zM14 20h-4v1h4v-1zm-8.246-5a8 8 0 1 1 12.49.002C17.624 15.774 16 17 16 18.5V21a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.5C8 17 6.375 15.774 5.754 15zM13 10.004h2.5l-4.5 6v-4H8.5L13 6v4.005z"/>
+                                `;
                         svg.setAttribute('viewBox', '0 0 24 24');
                      //   svg.setAttribute('fill', 'none');
                     }
@@ -3057,7 +3077,7 @@ async function exportToPDF(bubble, text) {
         const fileId = Date.now() + Math.random();
         const uploadItem = createUploadPreview(file, fileId);
         uploadPreviewContainer.appendChild(uploadItem);
-        uploadPreviewContainer.style.display = 'block';
+        uploadPreviewContainer.style.display = 'flex';
 
         try {
             // Update status to uploading
@@ -3125,8 +3145,8 @@ async function exportToPDF(bubble, text) {
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(file);
                 img.className = 'upload-preview';
-                img.style.width = '40px';
-                img.style.height = '40px';
+                img.style.width = '60px';
+                img.style.height = '60px';
                 preview.appendChild(img);
             } else {
                 const ext = file.name.split('.').pop().toUpperCase();
@@ -3966,6 +3986,62 @@ async function exportToPDF(bubble, text) {
                 waitForElement();
             }
         </script>
+        <script>
+
+
+(function(){
+    const STORAGE_KEY = "ai_tooltip_seen_v1"; // bump to show again
+    const AUTO_DISMISS_SECONDS = null; // or number to auto-close
+  
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.querySelector(".controls-main");
+      if (!container) return;
+  
+      const tooltip = container.querySelector("#aiTooltip");
+      if (!tooltip) return;
+  
+      const primaryBtn = tooltip.querySelector(".primary");
+      const dismissBtn = tooltip.querySelector(".secondary");
+      const closeBtn = tooltip.querySelector(".tip-close");
+      const pointElem = container.querySelector("button, [role='button'], .tool-btn") || container;
+  
+      // If user already saw tooltip, keep it hidden
+      if (localStorage.getItem(STORAGE_KEY)) {
+        tooltip.setAttribute("aria-hidden","true");
+        tooltip.classList.remove("show");
+        return;
+      }
+  
+      // Show tooltip (add class)
+      function show() {
+        tooltip.classList.add("show");
+        tooltip.setAttribute("aria-hidden","false");
+        primaryBtn && primaryBtn.focus();
+      }
+  
+      function hide(markSeen = true) {
+        tooltip.classList.remove("show");
+        tooltip.setAttribute("aria-hidden","true");
+        if (markSeen) localStorage.setItem(STORAGE_KEY, new Date().toISOString());
+      }
+  
+      
+  
+
+      dismissBtn && dismissBtn.addEventListener("click", () => hide(true));
+      closeBtn && closeBtn.addEventListener("click", () => hide(true));
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(true); });
+
+      show();
+  
+      if (AUTO_DISMISS_SECONDS && Number.isFinite(AUTO_DISMISS_SECONDS)) {
+        setTimeout(()=> hide(true), AUTO_DISMISS_SECONDS * 1000);
+      }
+    });
+  })();
+  
+  
+</script>
         
 <script defer src="/static/search-panel.js"></script>
 <script defer src="/static/internet.js"></script>

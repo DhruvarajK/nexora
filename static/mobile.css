@@ -427,12 +427,15 @@
 
     /* Scroll to bottom button */
     #scroll-to-bottom-btn {
-        bottom: 119px;
-        right: 13px;
         width: 35px;
         height: 35px;
         font-size: 1.2rem;
     }
+
+    .scroll-to-bottom-btn-wrapper {
+      right: 10px;
+      top: -30px;
+  }
     /* Source components */
     .src-con {
         padding: 8px 12px;
@@ -502,6 +505,7 @@
         height: 34px;
         padding: 5.9px;
         font-size: 13px;
+        font-weight: 800;
     }
 
     .expand-button svg {

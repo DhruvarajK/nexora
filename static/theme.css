@@ -316,15 +316,15 @@
   /* Upload preview / items */
   #upload-preview-container { background: transparent; border-bottom-color: #eaeaea; }
   .upload-item { background: #ffffff; border-color: #e6e9ec; color: #111827; }
-  .upload-item.error { background: #fff5f5; border-color: #f5c2c2; }
-  .upload-item.success { background: #f3fff5; border-color: #c7f0d0; }
+  .upload-item.error { background: transparent; border-color: #f5c2c2; }
+  .upload-item.success { background: transparent; border-color: #d5d5d5; }
   .upload-preview { background: #f3f4f6; color: #6b7280; }
   .upload-name { color: #111827; }
   .upload-status { color: #6b7280; }
   .upload-status.error { color: #dc3545; }
   .upload-status.success { color: #15803d; }
-  .upload-remove { background: #fff; color: #6b7280; box-shadow: 0 1px 3px rgba(16,24,40,0.04); }
-  .upload-remove:hover { background: #f8f8f9; color: #b91c1c; }
+  .upload-remove { background: transparent; color: #6b7280;  }
+  .upload-remove:hover { background: transparent; color: #b91c1c; }
 
   .upload-spinner { border-top-color: #0b6bff; }
 
@@ -735,15 +735,15 @@
       /* Upload preview / items */
       #upload-preview-container { background: transparent; border-bottom-color: rgba(255,255,255,0.03); }
       .upload-item { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.03); color: #dbeeff; }
-      .upload-item.error { border-color: rgba(220,53,69,0.3); background: rgba(220,53,69,0.04); }
-      .upload-item.success { border-color: rgba(34,197,94,0.18); background: rgba(34,197,94,0.03); }
+      .upload-item.error { border-color: rgba(220,53,69,0.3); background: transparent; }
+      .upload-item.success { border-color: #e4e4e4; background: transparent; }
       .upload-preview { background: rgba(255,255,255,0.02); color: #9fb6ce; }
       .upload-name { color: #e6f4ff; }
       .upload-status { color: #9fb6ce; }
       .upload-status.error { color: #ff9b9b; }
       .upload-status.success { color: #9ff0b0; }
-      .upload-remove { background: rgba(255,255,255,0.02); color: #9fb6ce; box-shadow: none; }
-      .upload-remove:hover { background: rgba(255,255,255,0.03); color: #ff8b8b; }
+      .upload-remove { background: transparent; color: #9fb6ce; }
+      .upload-remove:hover { background: transparent; color: #ff8b8b; }
     
       .upload-spinner { border-top-color: #60a5fa; }
     
