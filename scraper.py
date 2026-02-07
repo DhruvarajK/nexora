@@ -5,7 +5,6 @@ import aiohttp
 import certifi
 import asyncio
 import json
-
 from aiohttp import ClientSession, TCPConnector
 from bs4 import BeautifulSoup
 from openai import OpenAI
@@ -28,11 +27,8 @@ def truncate_prompt_text(prompt_text, max_tokens=24000):
 
 
 # --- Configuration Variables ---
-API_KEY = "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"
-QUERY = "what is cispr in medical"  # This is a placeholder, actual query comes from req.message
 NUM_LINKS = 5
 LINK_CHAR_LIMIT = 5000
-LLM_MODEL = "qwen/qwen2.5-vl-32b-instruct:free"
 SYSTEM_PROMPT = (
     "You are a hybrid assistant that can do two things depending on the user input:\n\n"
     "1. **If the user input is a search query** (e.g., 'Top programming languages for data science in 2025'), "
@@ -199,22 +195,7 @@ def get_content_from_links(links, limit_chars=LINK_CHAR_LIMIT):
     print("Scraping complete.")
     return scraped_data
 
-
-
-# Initialize OpenAI client
 def create_openai_client(api_key, base_url="https://openrouter.ai/api/v1"):
     return OpenAI(base_url=base_url, api_key=api_key)
 
 
-# Example of the new workflow
-if __name__ == '__main__':
-    # 1. Call the first function to get links immediately.
-    search_query = "latest news in english kannur"
-    retrieved_links = get_search_links(search_query, num_links=NUM_LINKS)
-    print(retrieved_links)
-    results = get_content_from_links(retrieved_links)
-    prompt_parts = [f"[#{i+1}]({res['url']})\n{res.get('content', '<No content>')}\n" for i, res in enumerate(results)]
-    # formatted_source_links = " ".join([f"[[!]]({link})" for link in retrieved_links])
-    # links_src=f':::(src){formatted_source_links}:::(src)'
-    # print(f"event: bot\ndata: {json.dumps(links_src)}\n\n")
-    print(results)

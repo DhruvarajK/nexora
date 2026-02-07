@@ -14,7 +14,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import httpx
 from pydantic import BaseModel
-from scraper import get_content_from_links,SYSTEM_PROMPT,LLM_MODEL, get_search_links, truncate_prompt_text
+from scraper import get_content_from_links,SYSTEM_PROMPT, get_search_links, truncate_prompt_text
+from config import CHAT_MODEL, IMAGE_MODEL, REASONING_MODEL, LLM_MODEL
 import shutil
 import time
 import logging
@@ -533,7 +534,7 @@ def upload_bytes_to_supabase(file_bytes: bytes, extension: str = ".png", bucket_
     public_url = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{bucket_name}/{filename}"
     return public_url
 
-def generate_and_upload_sync(prompt: str, user_id: int, model: str = "black-forest-labs/FLUX.1-schnell") -> str:
+def generate_and_upload_sync(prompt: str, user_id: int, model: str = IMAGE_MODEL) -> str:
     print("generate_and_upload_sync: called, user_id type:", type(user_id), "value:", user_id)
 
     # 1) Generate image using huggingface InferenceClient
@@ -711,7 +712,7 @@ async def chat_stream(req: ChatRequest):
 
         bot_buffer = ""
         resp_stream = client.chat.completions.create(
-            model="qwen/qwen2.5-vl-32b-instruct:free",
+            model=CHAT_MODEL,
             stream=True,
             messages=messages,
         )
@@ -784,7 +785,7 @@ async def chat_stream_exec(req: ChatRequest):
 
         bot_buffer = ""
         resp_stream = client.chat.completions.create(
-            model="qwen/qwen2.5-vl-32b-instruct:free",
+            model=CHAT_MODEL,
             stream=True,
             messages=messages,
             max_tokens=450,          
@@ -873,7 +874,7 @@ async def canvas_chat_stream(req: CanvasChatRequest):
         try:
             # Note: Ensure your client call is appropriate (sync/async)
             resp_stream = client.chat.completions.create(
-                model="qwen/qwen2.5-vl-32b-instruct:free", # Or your preferred model
+                model=CHAT_MODEL, # Or your preferred model
                 stream=True,
                 messages=messages,
             )
@@ -931,7 +932,7 @@ async def canvas_chat_stream(req: CanvasChatRequest):
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-# --- MODIFIED: Search-chat endpoint (assuming it should also be chat-specific) ---
+
 @app.post("/search-chat")
 async def search_chat_stream(req: ChatRequest):
     query = req.message
@@ -1007,7 +1008,7 @@ async def chat_reason(req: ChatRequest):
         thinking_open = False
         try:
             stream = client.chat.completions.create(
-                model="deepseek/deepseek-r1-0528-qwen3-8b:free",
+                model=REASONING_MODEL,
                 stream=True,
                 messages=messages,
                 reasoning_effort="high",
@@ -1467,7 +1468,7 @@ async def run_agent_task(agent_id):
 
     # call the model (keep your existing call)
     response = client.chat.completions.create(
-        model="qwen/qwen2.5-vl-32b-instruct:free",
+        model=CHAT_MODEL,
         stream=False,
         messages=messages,
     )
