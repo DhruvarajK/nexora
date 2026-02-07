@@ -79,7 +79,7 @@ def get_next_hf_client():
 
 cursor.execute("PRAGMA foreign_keys = ON;")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
